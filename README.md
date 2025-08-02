@@ -98,20 +98,85 @@ npm start
 
 - **GET** `/api/health` - Verificar estado del servidor
 
-### Tareas
+### Usuarios (Authentication)
 
-- **GET** `/api/tasks` - Obtener todas las tareas
-- **GET** `/api/tasks?userId={userId}` - Obtener tareas de un usuario específico
+- **GET** `/api/users/:mail` - Verificar si un usuario existe (login)
+- **POST** `/api/users` - Crear nuevo usuario
+
+### Tareas (Protegidas con autenticación)
+
+- **GET** `/api/tasks` - Obtener todas las tareas del usuario autenticado
+- **GET** `/api/tasks?userId={userId}` - Obtener tareas de un usuario específico (debe coincidir con el usuario autenticado)
 - **POST** `/api/tasks` - Crear nueva tarea
-- **PUT** `/api/tasks/:id` - Actualizar tarea existente
-- **DELETE** `/api/tasks/:id` - Eliminar tarea
+- **PUT** `/api/tasks/:id` - Actualizar tarea existente (solo si pertenece al usuario autenticado)
+- **DELETE** `/api/tasks/:id` - Eliminar tarea (solo si pertenece al usuario autenticado)
+
+## 🔒 Autenticación con Firebase
+
+### Headers requeridos para rutas protegidas
+
+```
+Authorization: Bearer <firebase_id_token>
+```
+
+### Obtener token de Firebase (Frontend)
+
+```javascript
+import { auth } from "./firebase-config";
+import { signInWithEmailAndPassword } from "firebase/auth";
+
+// Autenticar usuario
+const userCredential = await signInWithEmailAndPassword(auth, email, password);
+const token = await userCredential.user.getIdToken();
+
+// Usar el token en las peticiones
+const response = await fetch("/api/tasks", {
+  headers: {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  },
+});
+```
 
 ## 📋 Ejemplos de Uso
 
-### Obtener todas las tareas
+### 1. Verificar si un usuario existe (Login)
 
 ```bash
-curl -X GET http://localhost:3000/api/tasks
+curl -X GET http://localhost:3000/api/users/usuario@ejemplo.com
+```
+
+**Respuesta si existe:**
+
+```json
+{
+  "success": true,
+  "message": "Usuario encontrado",
+  "data": {
+    "id": "user-id-123",
+    "mail": "usuario@ejemplo.com",
+    "createdAt": "2024-01-15T10:30:00.000Z",
+    "updatedAt": "2024-01-15T10:30:00.000Z"
+  },
+  "exists": true
+}
+```
+
+### 2. Crear nuevo usuario
+
+```bash
+curl -X POST http://localhost:3000/api/users \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mail": "nuevo@ejemplo.com"
+  }'
+```
+
+### 3. Obtener tareas del usuario autenticado
+
+```bash
+curl -X GET http://localhost:3000/api/tasks \
+  -H "Authorization: Bearer <firebase_id_token>"
 ```
 
 **Respuesta:**
@@ -125,42 +190,47 @@ curl -X GET http://localhost:3000/api/tasks
       "id": "task-id-123",
       "title": "Completar proyecto",
       "description": "Finalizar la implementación del API",
-      "completed": false,
-      "createdAt": "2024-01-15T10:30:00.000Z",
-      "updatedAt": "2024-01-15T10:30:00.000Z",
-      "userId": "user-123"
+      "status": false,
+      "priority": 0,
+      "created_at": "2024-01-15T10:30:00.000Z",
+      "userId": "firebase-uid-123"
     }
   ],
-  "count": 1
+  "count": 1,
+  "userId": "firebase-uid-123"
 }
 ```
 
-### Crear nueva tarea
+### 4. Crear nueva tarea (autenticado)
 
 ```bash
 curl -X POST http://localhost:3000/api/tasks \
+  -H "Authorization: Bearer <firebase_id_token>" \
   -H "Content-Type: application/json" \
   -d '{
     "title": "Nueva tarea",
-    "description": "Descripción de la tarea",
-    "userId": "user-123"
+    "description": "Descripción de la tarea"
   }'
 ```
 
-### Actualizar tarea
+### 5. Actualizar tarea (autenticado)
 
 ```bash
 curl -X PUT http://localhost:3000/api/tasks/task-id-123 \
+  -H "Authorization: Bearer <firebase_id_token>" \
   -H "Content-Type: application/json" \
   -d '{
-    "completed": true
+    "status": true
   }'
 ```
 
-### Eliminar tarea
+### 6. Eliminar tarea (autenticado)
 
 ```bash
-curl -X DELETE http://localhost:3000/api/tasks/task-id-123
+curl -X DELETE http://localhost:3000/api/tasks/task-id-123 \
+  -H "Authorization: Bearer <firebase_id_token>"
+```
+
 ```
 
 ## 🏗️ Arquitectura
@@ -179,24 +249,49 @@ Este proyecto implementa una **arquitectura en capas** siguiendo principios de *
 - **Separation of Concerns**: Lógica de negocio separada de la infraestructura
 - **Type Safety**: TypeScript con tipado estricto
 
-## 🔒 Seguridad
+## 🔒 Seguridad Implementada
 
+### ✅ Autenticación con Tokens
+- **Firebase Authentication**: Validación de tokens JWT de Firebase
+- **Middleware de autenticación**: Protección automática de rutas
+- **Manejo de errores**: Códigos específicos para diferentes tipos de errores de token
+
+### ✅ Seguridad Adicional
 - **Helmet**: Protección contra vulnerabilidades comunes
-- **CORS**: Configurado para permitir orígenes específicos
-- **Validación**: Validación de datos de entrada
+- **CORS**: Configurado para permitir orígenes específicos con credenciales
+- **Validación de datos**: Validación estricta en controladores y servicios
 - **Variables de entorno**: Credenciales sensibles protegidas
+- **Autorización**: Verificación de propiedad de recursos (tareas)
 
-## 📝 Próximos Pasos
+### 🔐 Códigos de Error de Autenticación
+- `MISSING_TOKEN`: Token de autorización no proporcionado
+- `INVALID_TOKEN_FORMAT`: Formato de token incorrecto
+- `TOKEN_EXPIRED`: Token expirado
+- `TOKEN_REVOKED`: Token revocado
+- `USER_NOT_FOUND`: Usuario no encontrado
+- `USER_DISABLED`: Usuario deshabilitado
 
-Para completar el challenge, se pueden implementar:
+## ✅ Challenge Completado
 
-- [ ] Endpoints para usuarios (`GET /api/users/:email`, `POST /api/users`)
-- [ ] Middleware de autenticación
-- [ ] Validación más robusta con bibliotecas como Joi o class-validator
+### 🎯 Implementación Realizada
+
+- [x] **Endpoints para usuarios** (`GET /api/users/:mail`, `POST /api/users`, `GET /api/users/me`)
+- [x] **Middleware de autenticación** con Firebase JWT
+- [x] **Protección de rutas** con tokens
+- [x] **Validación de datos** en todas las capas
+- [x] **Manejo de errores** estructurado
+- [x] **Autorización por usuario** (cada usuario solo ve sus tareas)
+- [x] **Arquitectura en capas** (Controller -> Service -> Repository)
+- [x] **Seguridad robusta** con múltiples validaciones
+
+### 🔄 Mejoras Opcionales Futuras
+
 - [ ] Tests unitarios e integración
 - [ ] Rate limiting
-- [ ] Logging estructurado
+- [ ] Logging estructurado con Winston
 - [ ] Documentación con Swagger/OpenAPI
+- [ ] Métricas y monitoreo
+- [ ] Cache con Redis
 
 ## 🐛 Solución de Problemas
 
@@ -214,3 +309,4 @@ Para completar el challenge, se pueden implementar:
 ## 📄 Licencia
 
 MIT License - consulta el archivo LICENSE para más detalles.
+```

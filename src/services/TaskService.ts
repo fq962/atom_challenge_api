@@ -110,6 +110,19 @@ export class TaskService {
     };
   }
 
+  async getTaskById(id: string): Promise<Task | null> {
+    try {
+      if (!id || typeof id !== "string") {
+        throw new Error("ID debe ser una cadena válida");
+      }
+
+      return await this.taskRepository.getTaskById(id);
+    } catch (error) {
+      console.error("Error en TaskService.getTaskById:", error);
+      throw error;
+    }
+  }
+
   private mapTasksToResponse(tasks: Task[]): TaskResponse[] {
     return tasks.map((task) => this.mapTaskToResponse(task));
   }

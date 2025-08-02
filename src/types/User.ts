@@ -1,10 +1,8 @@
 export interface User {
   id: string;
-  email: string;
-  createdAt: Date;
-  updatedAt: Date;
+  mail: string;
 }
 
 export interface CreateUserDto {
-  email: string;
+  mail: string;
 }
