@@ -42,8 +42,7 @@ export class UserRepository {
       const now = new Date();
       const userData = {
         mail: createUserDto.mail,
-        createdAt: now,
-        updatedAt: now,
+        created_at: now,
       };
 
       const docRef = await this.collection.add(userData);

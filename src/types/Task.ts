@@ -13,6 +13,7 @@ export interface Task {
 export interface CreateTaskDto {
   title: string;
   description: string;
+  priority: number;
   id_user: string | DocumentReference<DocumentData>;
 }
 

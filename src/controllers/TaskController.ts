@@ -72,7 +72,7 @@ export class TaskController {
         return;
       }
 
-      const { title, description } = req.body;
+      const { title, description, priority } = req.body;
       const authenticatedUserId = req.user.id_user;
 
       // Validaciones básicas
@@ -88,6 +88,7 @@ export class TaskController {
       const createTaskDto = {
         title: title.trim(),
         description: description ? description.trim() : "",
+        priority: priority,
         id_user: authenticatedUserId, // Usar el ID del usuario autenticado
       };
 

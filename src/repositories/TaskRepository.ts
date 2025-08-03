@@ -103,7 +103,7 @@ export class TaskRepository {
         title: createTaskDto.title,
         description: createTaskDto.description,
         is_done: false,
-        priority: 0,
+        priority: createTaskDto.priority,
         created_at: now,
         id_user: userRef, // Mantener ambos por compatibilidad
       };
