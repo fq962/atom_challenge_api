@@ -7,6 +7,9 @@ import dotenv from "dotenv";
 import taskRoutes from "./routes/taskRoutes";
 import userRoutes from "./routes/userRoutes";
 
+// Importar middleware de validación
+import { validationErrorHandler } from "./middleware/validationMiddleware";
+
 // Cargar variables de entorno
 dotenv.config();
 
@@ -63,6 +66,9 @@ app.use("*", (req, res) => {
     path: req.originalUrl,
   });
 });
+
+// Middleware de validación de errores de Zod
+app.use(validationErrorHandler);
 
 // Middleware global de manejo de errores
 app.use(

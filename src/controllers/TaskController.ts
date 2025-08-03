@@ -1,5 +1,11 @@
 import { Request, Response } from "express";
 import { TaskService } from "../services/TaskService";
+import {
+  CreateTaskInput,
+  UpdateTaskInput,
+  DeleteTaskInput,
+  GetTasksByUserInput,
+} from "../schemas/taskSchemas";
 
 export class TaskController {
   private readonly taskService: TaskService;
@@ -19,29 +25,24 @@ export class TaskController {
         return;
       }
 
-      const { id_user } = req.query;
+      const { id_user } = req.query as GetTasksByUserInput;
       const authenticatedUserId = req.user.id_user;
 
-      let tasks;
-      console.log("authenticatedUserId", req.user);
-      console.log("id_user", id_user);
       // Si se especifica un userId en la query, verificar que coincida con el usuario autenticado
-      if (id_user && typeof id_user === "string") {
-        if (id_user !== authenticatedUserId) {
-          res.status(403).json({
-            success: false,
-            message:
-              "No tienes permisos para acceder a las tareas de otro usuario",
-            data: null,
-            id_user: authenticatedUserId,
-          });
-          return;
-        }
-        tasks = await this.taskService.getTasksByUserId(id_user);
-      } else {
-        // Por defecto, obtener tareas del usuario autenticado
-        tasks = await this.taskService.getTasksByUserId(authenticatedUserId);
+      if (id_user && id_user !== authenticatedUserId) {
+        res.status(403).json({
+          success: false,
+          message:
+            "No tienes permisos para acceder a las tareas de otro usuario",
+          data: null,
+          id_user: authenticatedUserId,
+        });
+        return;
       }
+
+      // Usar el userId de la query si está presente, sino usar el del usuario autenticado
+      const targetUserId = id_user || authenticatedUserId;
+      const tasks = await this.taskService.getTasksByUserId(targetUserId);
 
       res.status(200).json({
         success: true,
@@ -72,23 +73,14 @@ export class TaskController {
         return;
       }
 
-      const { title, description, priority } = req.body;
+      // Los datos ya están validados por el middleware de Zod
+      const { title, description, priority } = req.body as CreateTaskInput;
       const authenticatedUserId = req.user.id_user;
 
-      // Validaciones básicas
-      if (!title || typeof title !== "string" || title.trim().length === 0) {
-        res.status(400).json({
-          success: false,
-          message: "El título es requerido y debe ser una cadena no vacía",
-          data: null,
-        });
-        return;
-      }
-
       const createTaskDto = {
-        title: title.trim(),
-        description: description ? description.trim() : "",
-        priority: priority,
+        title,
+        description: description || "",
+        priority: priority || 0,
         id_user: authenticatedUserId, // Usar el ID del usuario autenticado
       };
 
@@ -122,27 +114,14 @@ export class TaskController {
         return;
       }
 
-      const { id, title, description, is_done, priority } = req.body;
+      // Los datos ya están validados por el middleware de Zod
+      const { id, title, description, is_done, priority } =
+        req.body as UpdateTaskInput;
       const authenticatedUserId = req.user.id_user;
 
-      // Validar que el ID esté presente
-      if (!id || typeof id !== "string") {
-        res.status(400).json({
-          success: false,
-          message: "ID de la tarea es requerido",
-          data: null,
-        });
-        return;
-      }
-
       const updateTaskDto = {
-        ...(title !== undefined && {
-          title: typeof title === "string" ? title.trim() : title,
-        }),
-        ...(description !== undefined && {
-          description:
-            typeof description === "string" ? description.trim() : description,
-        }),
+        ...(title !== undefined && { title }),
+        ...(description !== undefined && { description }),
         ...(is_done !== undefined && { is_done }),
         ...(priority !== undefined && { priority }),
       };
@@ -179,7 +158,8 @@ export class TaskController {
         return;
       }
 
-      const { id } = req.body;
+      // Los datos ya están validados por el middleware de Zod
+      const { id } = req.body as DeleteTaskInput;
       const authenticatedUserId = req.user.id_user;
 
       await this.taskService.deleteTask(id);

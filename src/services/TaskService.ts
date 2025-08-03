@@ -13,23 +13,15 @@ export class TaskService {
     this.taskRepository = new TaskRepository();
   }
 
-  // async getAllTasks(): Promise<TaskResponse[]> {
-  //   const tasks = await this.taskRepository.getAllTasks();
-  //   return this.mapTasksToResponse(tasks);
-  // }
-
   async getTasksByUserId(userId: string): Promise<TaskResponse[]> {
-    if (!userId || userId.trim() === "") {
-      throw new Error("El ID del usuario es requerido");
-    }
-
+    // Las validaciones básicas ahora se hacen en el middleware de Zod
     const tasks = await this.taskRepository.getTasksByUserId(userId);
     return this.mapTasksToResponse(tasks);
   }
 
   async createTask(createTaskDto: CreateTaskDto): Promise<TaskResponse> {
-    this.validateCreateTaskDto(createTaskDto);
-
+    // Las validaciones de formato ahora se hacen en el middleware de Zod
+    // Solo validamos lógica de negocio si es necesario
     const task = await this.taskRepository.createTask(createTaskDto);
     return this.mapTaskToResponse(task);
   }
@@ -38,64 +30,14 @@ export class TaskService {
     id: string,
     updateTaskDto: UpdateTaskDto
   ): Promise<TaskResponse | null> {
-    if (!id || id.trim() === "") {
-      throw new Error("El ID de la tarea es requerido");
-    }
-
-    this.validateUpdateTaskDto(updateTaskDto);
-
+    // Las validaciones de formato ahora se hacen en el middleware de Zod
     const task = await this.taskRepository.updateTask(id, updateTaskDto);
     return task ? this.mapTaskToResponse(task) : null;
   }
 
   async deleteTask(id: string): Promise<boolean> {
-    if (!id || id.trim() === "") {
-      throw new Error("El ID de la tarea es requerido");
-    }
-
+    // Las validaciones de formato ahora se hacen en el middleware de Zod
     return await this.taskRepository.deleteTask(id);
-  }
-
-  private validateCreateTaskDto(createTaskDto: CreateTaskDto): void {
-    if (!createTaskDto.title || createTaskDto.title.trim() === "") {
-      throw new Error("El título es requerido");
-    }
-
-    if (!createTaskDto.description || createTaskDto.description.trim() === "") {
-      throw new Error("La descripción es requerida");
-    }
-
-    if (!createTaskDto.id_user || createTaskDto.id_user === "") {
-      throw new Error("El ID del usuario es requerido");
-    }
-
-    if (createTaskDto.title.length > 100) {
-      throw new Error("El título no puede exceder 100 caracteres");
-    }
-
-    if (createTaskDto.description.length > 500) {
-      throw new Error("La descripción no puede exceder 500 caracteres");
-    }
-  }
-
-  private validateUpdateTaskDto(updateTaskDto: UpdateTaskDto): void {
-    if (updateTaskDto.title !== undefined) {
-      if (updateTaskDto.title.trim() === "") {
-        throw new Error("El título no puede estar vacío");
-      }
-      if (updateTaskDto.title.length > 100) {
-        throw new Error("El título no puede exceder 100 caracteres");
-      }
-    }
-
-    if (updateTaskDto.description !== undefined) {
-      if (updateTaskDto.description.trim() === "") {
-        throw new Error("La descripción no puede estar vacía");
-      }
-      if (updateTaskDto.description.length > 500) {
-        throw new Error("La descripción no puede exceder 500 caracteres");
-      }
-    }
   }
 
   private mapTaskToResponse(task: Task): TaskResponse {

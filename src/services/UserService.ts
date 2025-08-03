@@ -10,20 +10,9 @@ export class UserService {
 
   async getUserByMail(mail: string): Promise<User | null> {
     try {
-      // Validaciones de negocio
-      if (!mail || typeof mail !== "string") {
-        throw new Error("Mail debe ser una cadena válida");
-      }
-
-      const normalizedMail = mail.toLowerCase().trim();
-
-      // Validar formato de mail
-      const mailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!mailRegex.test(normalizedMail)) {
-        throw new Error("Formato de mail inválido");
-      }
-
-      return await this.userRepository.getUserByMail(normalizedMail);
+      // Las validaciones de formato ahora se hacen en el middleware de Zod
+      // El mail ya viene normalizado desde el schema
+      return await this.userRepository.getUserByMail(mail);
     } catch (error) {
       console.error("Error en UserService.getUserByMail:", error);
       throw error;
@@ -32,33 +21,18 @@ export class UserService {
 
   async createUser(createUserDto: CreateUserDto): Promise<User> {
     try {
-      // Validaciones de negocio
-      if (!createUserDto.mail || typeof createUserDto.mail !== "string") {
-        throw new Error("Mail es requerido y debe ser una cadena válida");
-      }
+      // Las validaciones de formato ahora se hacen en el middleware de Zod
+      // El mail ya viene normalizado desde el schema
 
-      const normalizedMail = createUserDto.mail.toLowerCase().trim();
-
-      // Validar formato de mail
-      const mailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!mailRegex.test(normalizedMail)) {
-        throw new Error("Formato de mail inválido");
-      }
-
-      // Verificar que el usuario no exista
+      // Verificar que el usuario no exista (validación de lógica de negocio)
       const existingUser = await this.userRepository.getUserByMail(
-        normalizedMail
+        createUserDto.mail
       );
       if (existingUser) {
         throw new Error("El usuario ya existe");
       }
 
-      // Crear el usuario
-      const normalizedCreateUserDto: CreateUserDto = {
-        mail: normalizedMail,
-      };
-
-      return await this.userRepository.createUser(normalizedCreateUserDto);
+      return await this.userRepository.createUser(createUserDto);
     } catch (error) {
       console.error("Error en UserService.createUser:", error);
       throw error;

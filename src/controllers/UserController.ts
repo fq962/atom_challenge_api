@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { UserService } from "../services/UserService";
 import { generateToken } from "../utils/jwtUtils";
+import { CreateUserInput, GetUserByMailInput } from "../schemas/userSchemas";
 
 export class UserController {
   private readonly userService: UserService;
@@ -12,25 +13,8 @@ export class UserController {
   // GET /users/:mail - Verificar si un usuario existe
   getUserByMail = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { mail } = req.params;
-
-      if (!mail) {
-        res.status(400).json({
-          success: false,
-          message: "Mail es requerido",
-        });
-        return;
-      }
-
-      // Validar formato de mail básico
-      const mailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!mailRegex.test(mail)) {
-        res.status(400).json({
-          success: false,
-          message: "Formato de mail inválido",
-        });
-        return;
-      }
+      // Los datos ya están validados por el middleware de Zod
+      const { mail } = req.params as GetUserByMailInput;
 
       const user = await this.userService.getUserByMail(mail);
 
@@ -68,25 +52,8 @@ export class UserController {
   // POST /users - Crear un nuevo usuario
   createUser = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { mail } = req.body;
-
-      if (!mail) {
-        res.status(400).json({
-          success: false,
-          message: "Mail es requerido",
-        });
-        return;
-      }
-
-      // Validar formato de mail
-      const mailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!mailRegex.test(mail)) {
-        res.status(400).json({
-          success: false,
-          message: "Formato de mail inválido",
-        });
-        return;
-      }
+      // Los datos ya están validados por el middleware de Zod
+      const { mail } = req.body as CreateUserInput;
 
       // Verificar si el usuario ya existe
       const existingUser = await this.userService.getUserByMail(mail);
