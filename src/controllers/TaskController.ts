@@ -19,23 +19,25 @@ export class TaskController {
         return;
       }
 
-      const { userId } = req.query;
-      const authenticatedUserId = req.user.uid;
+      const { id_user } = req.query;
+      const authenticatedUserId = req.user.id_user;
 
       let tasks;
-
+      console.log("authenticatedUserId", req.user);
+      console.log("id_user", id_user);
       // Si se especifica un userId en la query, verificar que coincida con el usuario autenticado
-      if (userId && typeof userId === "string") {
-        if (userId !== authenticatedUserId) {
+      if (id_user && typeof id_user === "string") {
+        if (id_user !== authenticatedUserId) {
           res.status(403).json({
             success: false,
             message:
               "No tienes permisos para acceder a las tareas de otro usuario",
             data: null,
+            id_user: authenticatedUserId,
           });
           return;
         }
-        tasks = await this.taskService.getTasksByUserId(userId);
+        tasks = await this.taskService.getTasksByUserId(id_user);
       } else {
         // Por defecto, obtener tareas del usuario autenticado
         tasks = await this.taskService.getTasksByUserId(authenticatedUserId);
@@ -46,7 +48,7 @@ export class TaskController {
         message: "Tareas obtenidas exitosamente",
         data: tasks,
         count: tasks.length,
-        userId: authenticatedUserId,
+        id_user: authenticatedUserId,
       });
     } catch (error) {
       console.error("Error en getAllTasks:", error);
@@ -71,7 +73,7 @@ export class TaskController {
       }
 
       const { title, description } = req.body;
-      const authenticatedUserId = req.user.uid;
+      const authenticatedUserId = req.user.id_user;
 
       // Validaciones básicas
       if (!title || typeof title !== "string" || title.trim().length === 0) {
@@ -86,7 +88,7 @@ export class TaskController {
       const createTaskDto = {
         title: title.trim(),
         description: description ? description.trim() : "",
-        userId: authenticatedUserId, // Usar el ID del usuario autenticado
+        id_user: authenticatedUserId, // Usar el ID del usuario autenticado
       };
 
       const task = await this.taskService.createTask(createTaskDto);
@@ -95,7 +97,7 @@ export class TaskController {
         success: true,
         message: "Tarea creada exitosamente",
         data: task,
-        userId: authenticatedUserId,
+        id_user: authenticatedUserId,
       });
     } catch (error) {
       console.error("Error en createTask:", error);
@@ -119,25 +121,14 @@ export class TaskController {
         return;
       }
 
-      const { id } = req.params;
-      const { title, description, status, priority } = req.body;
-      const authenticatedUserId = req.user.uid;
+      const { id, title, description, is_done, priority } = req.body;
+      const authenticatedUserId = req.user.id_user;
 
-      // Verificar que la tarea pertenece al usuario autenticado
-      const existingTask = await this.taskService.getTaskById(id);
-      if (!existingTask) {
-        res.status(404).json({
+      // Validar que el ID esté presente
+      if (!id || typeof id !== "string") {
+        res.status(400).json({
           success: false,
-          message: "Tarea no encontrada",
-          data: null,
-        });
-        return;
-      }
-
-      if (existingTask.userId !== authenticatedUserId) {
-        res.status(403).json({
-          success: false,
-          message: "No tienes permisos para actualizar esta tarea",
+          message: "ID de la tarea es requerido",
           data: null,
         });
         return;
@@ -151,7 +142,7 @@ export class TaskController {
           description:
             typeof description === "string" ? description.trim() : description,
         }),
-        ...(status !== undefined && { status }),
+        ...(is_done !== undefined && { is_done }),
         ...(priority !== undefined && { priority }),
       };
 
@@ -161,7 +152,7 @@ export class TaskController {
         success: true,
         message: "Tarea actualizada exitosamente",
         data: task,
-        userId: authenticatedUserId,
+        id_user: authenticatedUserId,
       });
     } catch (error) {
       console.error("Error en updateTask:", error);
@@ -187,36 +178,16 @@ export class TaskController {
         return;
       }
 
-      const { id } = req.params;
-      const authenticatedUserId = req.user.uid;
+      const { id } = req.body;
+      const authenticatedUserId = req.user.id_user;
 
-      // Verificar que la tarea pertenece al usuario autenticado
-      const existingTask = await this.taskService.getTaskById(id);
-      if (!existingTask) {
-        res.status(404).json({
-          success: false,
-          message: "Tarea no encontrada",
-          data: null,
-        });
-        return;
-      }
-
-      if (existingTask.userId !== authenticatedUserId) {
-        res.status(403).json({
-          success: false,
-          message: "No tienes permisos para eliminar esta tarea",
-          data: null,
-        });
-        return;
-      }
-
-      const deleted = await this.taskService.deleteTask(id);
+      await this.taskService.deleteTask(id);
 
       res.status(200).json({
         success: true,
         message: "Tarea eliminada exitosamente",
         data: null,
-        userId: authenticatedUserId,
+        id_user: authenticatedUserId,
       });
     } catch (error) {
       console.error("Error en deleteTask:", error);

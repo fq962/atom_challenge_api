@@ -13,10 +13,10 @@ export class TaskService {
     this.taskRepository = new TaskRepository();
   }
 
-  async getAllTasks(): Promise<TaskResponse[]> {
-    const tasks = await this.taskRepository.getAllTasks();
-    return this.mapTasksToResponse(tasks);
-  }
+  // async getAllTasks(): Promise<TaskResponse[]> {
+  //   const tasks = await this.taskRepository.getAllTasks();
+  //   return this.mapTasksToResponse(tasks);
+  // }
 
   async getTasksByUserId(userId: string): Promise<TaskResponse[]> {
     if (!userId || userId.trim() === "") {
@@ -65,7 +65,7 @@ export class TaskService {
       throw new Error("La descripción es requerida");
     }
 
-    if (!createTaskDto.userId || createTaskDto.userId.trim() === "") {
+    if (!createTaskDto.id_user || createTaskDto.id_user === "") {
       throw new Error("El ID del usuario es requerido");
     }
 
@@ -103,24 +103,10 @@ export class TaskService {
       id: task.id,
       title: task.title,
       description: task.description,
-      status: task.status,
+      is_done: task.is_done,
       priority: task.priority,
       created_at: task.created_at.toISOString(),
-      userId: task.userId,
     };
-  }
-
-  async getTaskById(id: string): Promise<Task | null> {
-    try {
-      if (!id || typeof id !== "string") {
-        throw new Error("ID debe ser una cadena válida");
-      }
-
-      return await this.taskRepository.getTaskById(id);
-    } catch (error) {
-      console.error("Error en TaskService.getTaskById:", error);
-      throw error;
-    }
   }
 
   private mapTasksToResponse(tasks: Task[]): TaskResponse[] {

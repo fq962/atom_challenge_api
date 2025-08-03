@@ -1,23 +1,25 @@
+import { DocumentReference, DocumentData } from "firebase-admin/firestore";
+
 export interface Task {
   id: string;
   title: string;
   description: string;
-  status: boolean;
+  id_user?: string | DocumentReference<DocumentData>;
+  is_done: boolean;
   priority: number;
   created_at: Date;
-  userId: string;
 }
 
 export interface CreateTaskDto {
   title: string;
   description: string;
-  userId: string;
+  id_user: string | DocumentReference<DocumentData>;
 }
 
 export interface UpdateTaskDto {
   title?: string;
   description?: string;
-  status?: boolean;
+  is_done?: boolean;
   priority?: number;
 }
 
@@ -25,8 +27,7 @@ export interface TaskResponse {
   id: string;
   title: string;
   description: string;
-  status: boolean;
+  is_done: boolean;
   priority: number;
   created_at: string;
-  userId: string;
 }

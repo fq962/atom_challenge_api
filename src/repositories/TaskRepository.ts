@@ -36,10 +36,11 @@ export class TaskRepository {
           id: doc.id,
           title: data.title || "",
           description: data.description || "",
-          status: data.status || false,
+          is_done: data.id_done || false,
           priority: data.priority || 0,
           created_at: data.created_at?.toDate() || new Date(),
-          userId: data.userId || data.user_id || "anonymous",
+          id_user:
+            data.id_user?.id || data.userId || data.user_id || "anonymous",
         });
       });
 
@@ -55,11 +56,17 @@ export class TaskRepository {
 
   async getTasksByUserId(userId: string): Promise<Task[]> {
     try {
+      console.log("userId", userId);
+
+      // Crear la referencia del documento del usuario
+      const userRef = db.collection("users").doc(userId);
+      console.log("Buscando tareas para userRef:", userRef.path);
+      console.log("userRef", userRef);
       const snapshot: QuerySnapshot<DocumentData> = await this.collection
-        .where("userId", "==", userId)
-        .orderBy("created_at", "desc")
+        .where("id_user", "==", userRef)
         .get();
 
+      console.log("Documentos encontrados:", snapshot.size);
       const tasks: Task[] = [];
       snapshot.forEach((doc) => {
         const data = doc.data();
@@ -67,15 +74,17 @@ export class TaskRepository {
           id: doc.id,
           title: data.title || "",
           description: data.description || "",
-          status: data.status || false,
+          is_done: data.is_done || false,
           priority: data.priority || 0,
           created_at:
             data.created_at?.toDate() || data.createdAt?.toDate() || new Date(),
-
-          userId: data.userId || data.user_id || "anonymous",
+          id_user:
+            data.id_user?.id || data.userId || data.user_id || "anonymous",
         });
       });
 
+      // Ordenar manualmente por fecha de creación (más recientes primero)
+      tasks.sort((a, b) => b.created_at.getTime() - a.created_at.getTime());
       return tasks;
     } catch (error) {
       console.error("Error al obtener las tareas del usuario:", error);
@@ -85,14 +94,18 @@ export class TaskRepository {
 
   async createTask(createTaskDto: CreateTaskDto): Promise<Task> {
     try {
+      const userRef = db
+        .collection("users")
+        .doc(createTaskDto.id_user.toString());
+      console.log("userRef", userRef);
       const now = new Date();
       const taskData = {
         title: createTaskDto.title,
         description: createTaskDto.description,
-        status: false, // Usar 'status' para coincidir con tu formato
-        priority: 0, // Mantener ambos para compatibilidad
-        created_at: now, // Usar 'created_at' para coincidir con tu formato
-        userId: createTaskDto.userId,
+        is_done: false,
+        priority: 0,
+        created_at: now,
+        id_user: userRef, // Mantener ambos por compatibilidad
       };
 
       const docRef = await this.collection.add(taskData);
@@ -132,41 +145,15 @@ export class TaskRepository {
         id: updatedDoc.id,
         title: data.title || "",
         description: data.description || "",
-        status: data.status || data.completed || false,
+        is_done: data.is_done || data.is_done || false,
         priority: data.priority || 0,
         created_at:
           data.created_at?.toDate() || data.createdAt?.toDate() || new Date(),
-
-        userId: data.userId || data.user_id || "anonymous",
+        id_user: data.id_user,
       };
     } catch (error) {
       console.error("Error al actualizar la tarea:", error);
       throw new Error("No se pudo actualizar la tarea");
-    }
-  }
-
-  async getTaskById(id: string): Promise<Task | null> {
-    try {
-      const doc = await this.collection.doc(id).get();
-
-      if (!doc.exists) {
-        return null;
-      }
-
-      const data = doc.data()!;
-
-      return {
-        id: doc.id,
-        title: data.title || "",
-        description: data.description || "",
-        status: data.status || false,
-        priority: data.priority || 0,
-        created_at: data.created_at?.toDate() || new Date(),
-        userId: data.userId || data.user_id || "anonymous",
-      };
-    } catch (error) {
-      console.error("Error al obtener la tarea por ID:", error);
-      throw new Error("No se pudo obtener la tarea");
     }
   }
 

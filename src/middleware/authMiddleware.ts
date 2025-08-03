@@ -1,12 +1,11 @@
 import { Request, Response, NextFunction } from "express";
-import { auth } from "../config/firebase";
-import { DecodedIdToken } from "firebase-admin/auth";
+import { verifyToken, JwtPayload } from "../utils/jwtUtils";
 
 // Extender el tipo Request para incluir usuario autenticado
 declare global {
   namespace Express {
     interface Request {
-      user?: DecodedIdToken;
+      user?: JwtPayload;
     }
   }
 }
@@ -40,43 +39,29 @@ export const authMiddleware = async (
     }
 
     try {
-      // Verificar el token con Firebase Auth
-      const decodedToken = await auth.verifyIdToken(token);
-
-      // Verificar que el token no haya expirado
-      const currentTime = Math.floor(Date.now() / 1000);
-      if (decodedToken.exp < currentTime) {
-        res.status(401).json({
-          success: false,
-          message: "Token expirado",
-          code: "TOKEN_EXPIRED",
-        });
-        return;
-      }
+      // Verificar el token JWT propio
+      const decodedToken = verifyToken(token);
 
       // Agregar información del usuario al request
       req.user = decodedToken;
 
       next();
     } catch (error: any) {
-      console.error("Error al verificar token:", error);
+      console.error("Error al verificar token:", error.message);
 
       // Manejar diferentes tipos de errores de token
       let message = "Token inválido";
       let code = "INVALID_TOKEN";
 
-      if (error.code === "auth/id-token-expired") {
+      if (error.message === "Token expirado") {
         message = "Token expirado";
         code = "TOKEN_EXPIRED";
-      } else if (error.code === "auth/id-token-revoked") {
-        message = "Token revocado";
-        code = "TOKEN_REVOKED";
-      } else if (error.code === "auth/user-not-found") {
-        message = "Usuario no encontrado";
-        code = "USER_NOT_FOUND";
-      } else if (error.code === "auth/user-disabled") {
-        message = "Usuario deshabilitado";
-        code = "USER_DISABLED";
+      } else if (error.message === "Token inválido") {
+        message = "Token inválido";
+        code = "INVALID_TOKEN";
+      } else if (error.message === "Token no válido aún") {
+        message = "Token no válido aún";
+        code = "TOKEN_NOT_ACTIVE";
       }
 
       res.status(401).json({
@@ -113,7 +98,7 @@ export const optionalAuthMiddleware = async (
   try {
     const token = authHeader.split(" ")[1];
     if (authHeader.startsWith("Bearer ") && token) {
-      const decodedToken = await auth.verifyIdToken(token);
+      const decodedToken = verifyToken(token);
       req.user = decodedToken;
     }
   } catch (error) {

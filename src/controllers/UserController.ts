@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { UserService } from "../services/UserService";
+import { generateToken } from "../utils/jwtUtils";
 
 export class UserController {
   private readonly userService: UserService;
@@ -17,7 +18,6 @@ export class UserController {
         res.status(400).json({
           success: false,
           message: "Mail es requerido",
-          data: null,
         });
         return;
       }
@@ -28,7 +28,6 @@ export class UserController {
         res.status(400).json({
           success: false,
           message: "Formato de mail inválido",
-          data: null,
         });
         return;
       }
@@ -39,16 +38,21 @@ export class UserController {
         res.status(404).json({
           success: false,
           message: "Usuario no encontrado",
-          data: null,
           exists: false,
         });
         return;
       }
 
+      // Generar token JWT para el usuario
+      const token = generateToken({
+        id_user: user.id,
+        mail: user.mail,
+      });
+
       res.status(200).json({
         success: true,
         message: "Usuario encontrado",
-        data: user,
+        token,
         exists: true,
       });
     } catch (error) {
@@ -57,7 +61,6 @@ export class UserController {
         success: false,
         message:
           error instanceof Error ? error.message : "Error interno del servidor",
-        data: null,
       });
     }
   };
@@ -71,7 +74,6 @@ export class UserController {
         res.status(400).json({
           success: false,
           message: "Mail es requerido",
-          data: null,
         });
         return;
       }
@@ -82,7 +84,6 @@ export class UserController {
         res.status(400).json({
           success: false,
           message: "Formato de mail inválido",
-          data: null,
         });
         return;
       }
@@ -90,10 +91,17 @@ export class UserController {
       // Verificar si el usuario ya existe
       const existingUser = await this.userService.getUserByMail(mail);
       if (existingUser) {
-        res.status(409).json({
-          success: false,
-          message: "El usuario ya existe",
-          data: existingUser,
+        // Si el usuario ya existe, generar token para él
+        const token = generateToken({
+          id_user: existingUser.id,
+          mail: existingUser.mail,
+        });
+
+        res.status(200).json({
+          success: true,
+          message: "Usuario ya existe",
+          token,
+          exists: true,
         });
         return;
       }
@@ -101,10 +109,16 @@ export class UserController {
       const createUserDto = { mail };
       const user = await this.userService.createUser(createUserDto);
 
+      // Generar token JWT para el nuevo usuario
+      const token = generateToken({
+        id_user: user.id,
+        mail: user.mail,
+      });
+
       res.status(201).json({
         success: true,
         message: "Usuario creado exitosamente",
-        data: user,
+        token,
       });
     } catch (error) {
       console.error("Error en createUser:", error);
@@ -112,7 +126,6 @@ export class UserController {
         success: false,
         message:
           error instanceof Error ? error.message : "Error al crear el usuario",
-        data: null,
       });
     }
   };

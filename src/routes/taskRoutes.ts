@@ -11,10 +11,10 @@ router.get("/", authMiddleware, taskController.getAllTasks);
 // POST /tasks - Crear una nueva tarea (protegido)
 router.post("/", authMiddleware, taskController.createTask);
 
-// PUT /tasks/:id - Actualizar una tarea específica (protegido)
-router.put("/:id", authMiddleware, taskController.updateTask);
+// PUT /tasks - Actualizar una tarea específica (protegido) - ID va en body
+router.patch("/", authMiddleware, taskController.updateTask);
 
 // DELETE /tasks/:id - Eliminar una tarea específica (protegido)
-router.delete("/:id", authMiddleware, taskController.deleteTask);
+router.delete("/", authMiddleware, taskController.deleteTask);
 
 export default router;

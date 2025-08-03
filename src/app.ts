@@ -24,7 +24,7 @@ app.use(
         ? ["https://your-frontend-domain.com"] // Cambiar por el dominio del frontend
         : ["http://localhost:4200", "http://localhost:3000"], // Para desarrollo
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
