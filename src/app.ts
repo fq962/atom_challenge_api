@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 
 // Importar rutas
 import taskRoutes from "./routes/taskRoutes";
+import userRoutes from "./routes/userRoutes";
 
 // Cargar variables de entorno
 dotenv.config();
@@ -42,6 +43,7 @@ if (process.env.NODE_ENV !== "production") {
 
 // Rutas de la API
 app.use("/api/tasks", taskRoutes);
+app.use("/api/users", userRoutes);
 
 // Ruta de health check
 app.get("/api/health", (_req, res) => {
