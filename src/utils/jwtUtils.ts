@@ -22,7 +22,7 @@ export const generateToken = (
 ): string => {
   try {
     return jwt.sign(payload, JWT_SECRET, {
-      expiresIn: JWT_EXPIRES_IN,
+      expiresIn: JWT_EXPIRES_IN as any,
       issuer: "atom-challenge-api",
       audience: "atom-challenge-client",
     });

@@ -84,7 +84,7 @@ export const authMiddleware = async (
 // Middleware opcional para rutas que pueden funcionar con o sin autenticación
 export const optionalAuthMiddleware = async (
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ): Promise<void> => {
   const authHeader = req.headers.authorization;

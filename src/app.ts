@@ -35,7 +35,7 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // Middleware de logging en desarrollo
 if (process.env.NODE_ENV !== "production") {
-  app.use((req, res, next) => {
+  app.use((req, _res, next) => {
     console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
     next();
   });
@@ -46,7 +46,7 @@ app.use("/api/tasks", taskRoutes);
 app.use("/api/users", userRoutes);
 
 // Ruta de health check
-app.get("/api/health", (req, res) => {
+app.get("/api/health", (_req, res) => {
   res.status(200).json({
     success: true,
     message: "API funcionando correctamente",
@@ -68,9 +68,9 @@ app.use("*", (req, res) => {
 app.use(
   (
     error: any,
-    req: express.Request,
+    _req: express.Request,
     res: express.Response,
-    next: express.NextFunction
+    _next: express.NextFunction
   ) => {
     console.error("Error no manejado:", error);
 
