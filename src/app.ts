@@ -17,15 +17,47 @@ const app = express();
 app.use(helmet());
 
 // Configurar CORS
+const allowedOrigins = [
+  // Desarrollo local
+  "http://localhost:3000",
+  "http://localhost:4200",
+  "http://localhost:5173", // Vite
+  "http://127.0.0.1:3000",
+  "http://127.0.0.1:4200",
+  "http://127.0.0.1:5173",
+  // Producción - Añade tu dominio de Vercel aquí
+  "https://atom-challenge-five.vercel.app/", // 👈 CAMBIA ESTO por tu dominio real
+  // También permitir cualquier subdominio de vercel.app si usas deployments de preview
+  /https:\/\/.*\.vercel\.app$/,
+];
+
 app.use(
   cors({
-    origin:
-      process.env.NODE_ENV === "production"
-        ? ["https://your-frontend-domain.com"] // Cambiar por el dominio del frontend
-        : ["http://localhost:4200", "http://localhost:3000"], // Para desarrollo
+    origin: function (origin, callback) {
+      // Permitir peticiones sin origin (como aplicaciones móviles o Postman)
+      if (!origin) return callback(null, true);
+
+      // Verificar si el origin está permitido
+      const isAllowed = allowedOrigins.some((allowedOrigin) => {
+        if (typeof allowedOrigin === "string") {
+          return origin === allowedOrigin;
+        }
+        // Para regex patterns
+        return allowedOrigin.test(origin);
+      });
+
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        console.log("CORS blocked origin:", origin);
+        callback(new Error("No permitido por CORS"), false);
+      }
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    exposedHeaders: ["Content-Range", "X-Content-Range"],
+    maxAge: 86400, // 24 hours
   })
 );
 
