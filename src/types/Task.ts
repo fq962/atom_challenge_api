@@ -1,5 +1,14 @@
 import { DocumentReference, DocumentData } from "firebase-admin/firestore";
 
+/**
+ * Task type definitions
+ * Defines interfaces for task-related data structures and DTOs
+ */
+
+/**
+ * Task entity interface
+ * Represents a complete task object with all properties
+ */
 export interface Task {
   id: string;
   title: string;
@@ -10,14 +19,20 @@ export interface Task {
   created_at: Date;
 }
 
-// DTO para datos del body (sin id_user)
+/**
+ * Task creation body DTO interface
+ * Data from request body (without id_user from token)
+ */
 export interface CreateTaskBodyDto {
   title: string;
   description: string;
   priority: number;
 }
 
-// DTO para crear tarea internamente (con id_user del token)
+/**
+ * Task creation DTO interface
+ * Internal DTO with id_user extracted from JWT token
+ */
 export interface CreateTaskDto {
   title: string;
   description: string;
@@ -25,6 +40,10 @@ export interface CreateTaskDto {
   id_user: string | DocumentReference<DocumentData>;
 }
 
+/**
+ * Task update DTO interface
+ * Partial update data for existing tasks
+ */
 export interface UpdateTaskDto {
   title?: string;
   description?: string;
@@ -32,6 +51,10 @@ export interface UpdateTaskDto {
   priority?: number;
 }
 
+/**
+ * Task response interface
+ * Formatted task data for API responses
+ */
 export interface TaskResponse {
   id: string;
   title: string;

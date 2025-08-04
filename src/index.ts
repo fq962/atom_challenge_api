@@ -1,40 +1,72 @@
 import app from "./app";
 
+/**
+ * Server startup and process management
+ * Initializes the Express server and handles graceful shutdown
+ */
+
+/**
+ * Server port configuration
+ * Uses PORT environment variable or defaults to 3000
+ */
 const PORT = process.env.PORT || 3000;
 
-// Iniciar el servidor
+/**
+ * Start the HTTP server
+ * Binds the Express app to the specified port and logs startup information
+ */
 const server = app.listen(PORT, () => {
-  console.log(`🚀 Servidor ejecutándose en puerto ${PORT}`);
-  console.log(`📍 URL local: http://localhost:${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📍 Local URL: http://localhost:${PORT}`);
   console.log(`🏥 Health check: http://localhost:${PORT}/api/health`);
-  console.log(`📋 Tareas endpoint: http://localhost:${PORT}/api/tasks`);
-  console.log(`🌍 Entorno: ${process.env.NODE_ENV || "development"}`);
+  console.log(`📋 Tasks endpoint: http://localhost:${PORT}/api/tasks`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
 });
 
-// Manejo de cierre grácil del servidor
+/**
+ * Graceful shutdown handlers
+ * Handle SIGTERM and SIGINT signals for clean server shutdown
+ */
+
+/**
+ * Handle SIGTERM signal (termination request)
+ */
 process.on("SIGTERM", () => {
-  console.log("SIGTERM recibido, cerrando servidor...");
+  console.log("SIGTERM received, shutting down server...");
   server.close(() => {
-    console.log("Servidor cerrado correctamente");
+    console.log("Server closed successfully");
     process.exit(0);
   });
 });
 
+/**
+ * Handle SIGINT signal (interrupt from keyboard)
+ */
 process.on("SIGINT", () => {
-  console.log("SIGINT recibido, cerrando servidor...");
+  console.log("SIGINT received, shutting down server...");
   server.close(() => {
-    console.log("Servidor cerrado correctamente");
+    console.log("Server closed successfully");
     process.exit(0);
   });
 });
 
-// Manejo de errores no capturados
+/**
+ * Global error handlers
+ * Handle unhandled promise rejections and uncaught exceptions
+ */
+
+/**
+ * Handle unhandled promise rejections
+ */
 process.on("unhandledRejection", (reason, promise) => {
-  console.error("Promesa rechazada no manejada:", promise, "Razón:", reason);
+  console.error("Unhandled promise rejection:", promise, "Reason:", reason);
 });
 
+/**
+ * Handle uncaught exceptions
+ */
 process.on("uncaughtException", (error) => {
-  console.error("Excepción no capturada:", error);
+  console.error("Uncaught exception:", error);
   process.exit(1);
 });
 

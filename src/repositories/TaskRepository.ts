@@ -7,6 +7,10 @@ import {
   QuerySnapshot,
 } from "firebase-admin/firestore";
 
+/**
+ * Repository for Task entity operations
+ * Handles Firestore database interactions for tasks
+ */
 export class TaskRepository {
   private readonly collection: CollectionReference<DocumentData>;
 
@@ -14,17 +18,22 @@ export class TaskRepository {
     this.collection = db.collection("tasks");
   }
 
+  /**
+   * Get all tasks from database
+   * @returns Array of all tasks ordered by creation date (newest first)
+   * @throws Error when database operation fails
+   */
   async getAllTasks(): Promise<Task[]> {
     try {
       let snapshot: QuerySnapshot<DocumentData>;
 
       try {
-        // Intentar ordenar por created_at primero
+        // Try to order by created_at first
         snapshot = await this.collection.orderBy("created_at", "desc").get();
       } catch (orderError) {
-        // Si falla, intentar sin ordenar
+        // If ordering fails, get without order
         console.log(
-          "No se pudo ordenar por created_at, obteniendo sin orden:",
+          "Could not order by created_at, getting without order:",
           orderError
         );
         snapshot = await this.collection.get();
@@ -37,29 +46,35 @@ export class TaskRepository {
         tasks.push(task);
       });
 
-      // Ordenar manualmente por fecha si no se pudo hacer en la consulta
+      // Sort manually by date if query ordering failed
       tasks.sort((a, b) => b.created_at.getTime() - a.created_at.getTime());
 
       return tasks;
     } catch (error) {
-      console.error("Error al obtener las tareas:", error);
-      throw new Error("No se pudieron obtener las tareas");
+      console.error("Error getting tasks:", error);
+      throw new Error("Could not retrieve tasks");
     }
   }
 
+  /**
+   * Get tasks by user ID
+   * @param userId User ID to filter tasks
+   * @returns Array of user's tasks ordered by creation date (newest first)
+   * @throws Error when database operation fails
+   */
   async getTasksByUserId(userId: string): Promise<Task[]> {
     try {
       console.log("userId", userId);
 
-      // Crear la referencia del documento del usuario
+      // Create user document reference
       const userRef = db.collection("users").doc(userId);
-      console.log("Buscando tareas para userRef:", userRef.path);
+      console.log("Searching tasks for userRef:", userRef.path);
       console.log("userRef", userRef);
       const snapshot: QuerySnapshot<DocumentData> = await this.collection
         .where("id_user", "==", userRef)
         .get();
 
-      console.log("Documentos encontrados:", snapshot.size);
+      console.log("Documents found:", snapshot.size);
       const tasks: Task[] = [];
       snapshot.forEach((doc) => {
         const data = doc.data();
@@ -67,37 +82,50 @@ export class TaskRepository {
         tasks.push(task);
       });
 
-      // Ordenar manualmente por fecha de creación (más recientes primero)
+      // Sort manually by creation date (newest first)
       tasks.sort((a, b) => b.created_at.getTime() - a.created_at.getTime());
       return tasks;
     } catch (error) {
-      console.error("Error al obtener las tareas del usuario:", error);
-      throw new Error("No se pudieron obtener las tareas del usuario");
+      console.error("Error getting user tasks:", error);
+      throw new Error("Could not retrieve user tasks");
     }
   }
 
+  /**
+   * Create new task in database
+   * @param createTaskDto Task creation data
+   * @returns Created Task object with generated ID
+   * @throws Error when task creation fails
+   */
   async createTask(createTaskDto: CreateTaskDto): Promise<Task> {
     try {
       const userRef = db
         .collection("users")
         .doc(createTaskDto.id_user.toString());
 
-      // Usar factory para crear los datos de la tarea
+      // Use factory to create task data
       const taskData = TaskFactory.createFromDto({
         ...createTaskDto,
-        id_user: userRef, // Usar referencia para Firestore
+        id_user: userRef, // Use reference for Firestore
       });
 
       const docRef = await this.collection.add(taskData);
 
-      // Usar factory para crear la tarea completa
+      // Use factory to create complete task object
       return TaskFactory.createComplete(docRef.id, createTaskDto);
     } catch (error) {
-      console.error("Error al crear la tarea:", error);
-      throw new Error("No se pudo crear la tarea");
+      console.error("Error creating task:", error);
+      throw new Error("Could not create task");
     }
   }
 
+  /**
+   * Update existing task
+   * @param id Task ID to update
+   * @param updateTaskDto Task update data
+   * @returns Updated Task object or null if not found
+   * @throws Error when database operation fails
+   */
   async updateTask(
     id: string,
     updateTaskDto: UpdateTaskDto
@@ -110,7 +138,7 @@ export class TaskRepository {
         return null;
       }
 
-      // Usar factory para crear los datos de actualización
+      // Use factory to create update data
       const updateData = TaskFactory.createFirestoreUpdateData(updateTaskDto);
 
       await docRef.update(updateData);
@@ -118,14 +146,20 @@ export class TaskRepository {
       const updatedDoc = await docRef.get();
       const data = updatedDoc.data()!;
 
-      // Usar factory para crear la tarea desde Firestore
+      // Use factory to create task from Firestore data
       return TaskFactory.createFromFirestore(updatedDoc.id, data);
     } catch (error) {
-      console.error("Error al actualizar la tarea:", error);
-      throw new Error("No se pudo actualizar la tarea");
+      console.error("Error updating task:", error);
+      throw new Error("Could not update task");
     }
   }
 
+  /**
+   * Delete task from database
+   * @param id Task ID to delete
+   * @returns True if task was deleted, false if not found
+   * @throws Error when database operation fails
+   */
   async deleteTask(id: string): Promise<boolean> {
     try {
       const docRef = this.collection.doc(id);
@@ -138,8 +172,8 @@ export class TaskRepository {
       await docRef.delete();
       return true;
     } catch (error) {
-      console.error("Error al eliminar la tarea:", error);
-      throw new Error("No se pudo eliminar la tarea");
+      console.error("Error deleting task:", error);
+      throw new Error("Could not delete task");
     }
   }
 }

@@ -1,8 +1,15 @@
 import { User, CreateUserDto } from "../types/User";
 
+/**
+ * Factory for User entity creation and validation
+ * Handles user data transformation and email validation
+ */
 export class UserFactory {
   /**
-   * Crear un nuevo User desde un DTO de creación
+   * Create User from CreateUserDto
+   * @param createUserDto User creation data
+   * @returns User object without ID
+   * @throws Error on invalid email format or validation failure
    */
   static createFromDto(createUserDto: CreateUserDto): Omit<User, "id"> {
     return {
@@ -11,7 +18,10 @@ export class UserFactory {
   }
 
   /**
-   * Crear User desde datos de Firestore
+   * Create User from Firestore document data
+   * @param id Document ID
+   * @param data Firestore document data
+   * @returns Complete User object
    */
   static createFromFirestore(id: string, data: any): User {
     return {
@@ -21,7 +31,10 @@ export class UserFactory {
   }
 
   /**
-   * Crear User completo con ID generado
+   * Create complete User with generated ID
+   * @param id Generated user ID
+   * @param createUserDto User creation data
+   * @returns Complete User object
    */
   static createComplete(id: string, createUserDto: CreateUserDto): User {
     const userData = this.createFromDto(createUserDto);
@@ -32,7 +45,9 @@ export class UserFactory {
   }
 
   /**
-   * Crear datos para Firestore desde DTO
+   * Create Firestore document data from DTO
+   * @param createUserDto User creation data
+   * @returns Firestore-ready data object
    */
   static createFirestoreData(
     createUserDto: CreateUserDto
@@ -44,7 +59,10 @@ export class UserFactory {
   }
 
   /**
-   * Verificar si dos usuarios son el mismo
+   * Check if two users are the same
+   * @param user1 First user
+   * @param user2 Second user
+   * @returns True if users match by ID or email
    */
   static isSameUser(user1: User, user2: User): boolean {
     return (
@@ -54,7 +72,9 @@ export class UserFactory {
   }
 
   /**
-   * Crear User para respuesta de autenticación
+   * Create user object for authentication response
+   * @param user Complete user object
+   * @returns User data safe for client response
    */
   static createAuthUser(user: User): { id: string; mail: string } {
     return {
@@ -64,14 +84,23 @@ export class UserFactory {
   }
 
   /**
-   * Verificar si un email ya existe (comparación normalizada)
+   * Check if email matches (normalized comparison)
+   * @param userEmail User's email
+   * @param searchEmail Email to search for
+   * @returns True if emails match after normalization
    */
   static emailMatches(userEmail: string, searchEmail: string): boolean {
     return this.normalizeEmail(userEmail) === this.normalizeEmail(searchEmail);
   }
 
-  // Métodos privados de validación y normalización
+  // Private validation methods
 
+  /**
+   * Validate and normalize email address
+   * @param email Email to validate
+   * @returns Normalized valid email
+   * @throws Error on invalid email format or validation failure
+   */
   private static validateAndNormalizeEmail(email: string): string {
     if (!email || typeof email !== "string") {
       throw new Error("El email es requerido y debe ser texto");
@@ -90,10 +119,20 @@ export class UserFactory {
     return normalizedEmail;
   }
 
+  /**
+   * Normalize email to lowercase and trim whitespace
+   * @param email Email to normalize
+   * @returns Normalized email
+   */
   private static normalizeEmail(email: string): string {
     return email.toLowerCase().trim();
   }
 
+  /**
+   * Validate email format using RFC 5322 regex
+   * @param email Email to validate
+   * @returns True if email format is valid
+   */
   private static isValidEmailFormat(email: string): boolean {
     // Regex básico para validación de email según RFC 5322 simplificado
     const emailRegex =

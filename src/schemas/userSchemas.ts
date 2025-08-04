@@ -1,6 +1,13 @@
 import { z } from "zod";
 
-// Schema base para User
+/**
+ * User validation schemas
+ * Defines Zod schemas for user-related operations and validation
+ */
+
+/**
+ * Base User schema with complete user data
+ */
 export const UserSchema = z.object({
   id: z.string().min(1, "ID es requerido"),
   mail: z
@@ -12,7 +19,10 @@ export const UserSchema = z.object({
     .trim(),
 });
 
-// Schema para crear usuario
+/**
+ * Schema for user creation
+ * Used for registering new users
+ */
 export const CreateUserSchema = z.object({
   mail: z
     .string()
@@ -23,7 +33,10 @@ export const CreateUserSchema = z.object({
     .trim(),
 });
 
-// Schema para obtener usuario por email
+/**
+ * Schema for getting user by email
+ * Used for user authentication and lookup
+ */
 export const GetUserByMailSchema = z.object({
   mail: z
     .string()
@@ -34,7 +47,10 @@ export const GetUserByMailSchema = z.object({
     .trim(),
 });
 
-// Schema para login/auth response
+/**
+ * Schema for authentication response
+ * Defines structure of login/register API responses
+ */
 export const AuthResponseSchema = z.object({
   success: z.boolean(),
   message: z.string(),
@@ -42,7 +58,9 @@ export const AuthResponseSchema = z.object({
   exists: z.boolean().optional(),
 });
 
-// Exportar tipos inferidos
+/**
+ * TypeScript types inferred from Zod schemas
+ */
 export type CreateUserInput = z.infer<typeof CreateUserSchema>;
 export type GetUserByMailInput = z.infer<typeof GetUserByMailSchema>;
 export type AuthResponse = z.infer<typeof AuthResponseSchema>;

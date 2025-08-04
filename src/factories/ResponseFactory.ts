@@ -1,9 +1,17 @@
 import { Task, TaskResponse } from "../types/Task";
 import { User } from "../types/User";
 
+/**
+ * Factory for standardized API responses
+ * Provides consistent response formatting across the application
+ */
 export class ResponseFactory {
   /**
-   * Crear respuesta exitosa estándar
+   * Create standard success response
+   * @param message Success message
+   * @param data Response data
+   * @param additionalFields Additional fields to include
+   * @returns Standardized success response object
    */
   static createSuccessResponse<T>(
     message: string,
@@ -20,7 +28,12 @@ export class ResponseFactory {
   }
 
   /**
-   * Crear respuesta de error estándar
+   * Create standard error response
+   * @param message Error message
+   * @param statusCode HTTP status code
+   * @param errors Array of specific errors
+   * @param additionalFields Additional fields to include
+   * @returns Standardized error response object
    */
   static createErrorResponse(
     message: string,
@@ -39,7 +52,9 @@ export class ResponseFactory {
   }
 
   /**
-   * Convertir Task a TaskResponse
+   * Convert Task to TaskResponse format
+   * @param task Task object to convert
+   * @returns TaskResponse formatted for client
    */
   static createTaskResponse(task: Task): TaskResponse {
     return {
@@ -53,14 +68,20 @@ export class ResponseFactory {
   }
 
   /**
-   * Convertir array de Tasks a TaskResponses
+   * Convert array of Tasks to TaskResponses
+   * @param tasks Array of Task objects
+   * @returns Array of TaskResponse objects
    */
   static createTasksResponse(tasks: Task[]): TaskResponse[] {
     return tasks.map((task) => this.createTaskResponse(task));
   }
 
   /**
-   * Crear respuesta de tareas con metadatos
+   * Create tasks response with metadata
+   * @param tasks Array of tasks
+   * @param userId User ID
+   * @param message Success message
+   * @returns Response with tasks and statistics
    */
   static createTasksWithMetadata(
     tasks: Task[],
@@ -78,7 +99,12 @@ export class ResponseFactory {
   }
 
   /**
-   * Crear respuesta de autenticación
+   * Create authentication response
+   * @param user User object
+   * @param token JWT token
+   * @param exists Whether user already existed
+   * @param message Custom message
+   * @returns Authentication response with token and user data
    */
   static createAuthResponse(
     user: User,
@@ -101,7 +127,8 @@ export class ResponseFactory {
   }
 
   /**
-   * Crear respuesta de usuario no encontrado
+   * Create user not found response
+   * @returns Standardized 404 error response
    */
   static createUserNotFoundResponse() {
     return this.createErrorResponse("Usuario no encontrado", 404, undefined, {
@@ -110,7 +137,10 @@ export class ResponseFactory {
   }
 
   /**
-   * Crear respuesta de tarea creada
+   * Create task created response
+   * @param task Created task
+   * @param userId User ID
+   * @returns Success response with created task
    */
   static createTaskCreatedResponse(task: Task, userId: string) {
     return this.createSuccessResponse(
@@ -121,7 +151,10 @@ export class ResponseFactory {
   }
 
   /**
-   * Crear respuesta de tarea actualizada
+   * Create task updated response
+   * @param task Updated task
+   * @param userId User ID
+   * @returns Success response with updated task
    */
   static createTaskUpdatedResponse(task: Task, userId: string) {
     return this.createSuccessResponse(
@@ -132,7 +165,9 @@ export class ResponseFactory {
   }
 
   /**
-   * Crear respuesta de tarea eliminada
+   * Create task deleted response
+   * @param userId User ID
+   * @returns Success response for task deletion
    */
   static createTaskDeletedResponse(userId: string) {
     return this.createSuccessResponse("Tarea eliminada exitosamente", null, {
@@ -141,14 +176,16 @@ export class ResponseFactory {
   }
 
   /**
-   * Crear respuesta de tarea no encontrada
+   * Create task not found response
+   * @returns Standardized 404 error response
    */
   static createTaskNotFoundResponse() {
     return this.createErrorResponse("Tarea no encontrada", 404);
   }
 
   /**
-   * Crear respuesta de health check
+   * Create health check response
+   * @returns Health status with system information
    */
   static createHealthResponse() {
     return this.createSuccessResponse("API funcionando correctamente", null, {
@@ -159,7 +196,9 @@ export class ResponseFactory {
   }
 
   /**
-   * Crear respuesta de acceso no autorizado
+   * Create unauthorized access response
+   * @param message Custom error message
+   * @returns Standardized 403 error response
    */
   static createUnauthorizedResponse(
     message: string = "No tienes permisos para acceder a este recurso"
@@ -168,7 +207,9 @@ export class ResponseFactory {
   }
 
   /**
-   * Crear respuesta de validación fallida
+   * Create validation error response
+   * @param errors Array of validation errors
+   * @returns Standardized 400 error response with details
    */
   static createValidationErrorResponse(errors: any[]) {
     return this.createErrorResponse(

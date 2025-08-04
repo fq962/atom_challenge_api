@@ -1,6 +1,14 @@
 import jwt from "jsonwebtoken";
 
-// Interfaz para el payload del JWT
+/**
+ * JWT utility functions
+ * Handles JWT token generation, verification, and management
+ */
+
+/**
+ * JWT payload interface
+ * Defines the structure of JWT token payload data
+ */
 export interface JwtPayload {
   id_user: string;
   mail: string;
@@ -8,14 +16,20 @@ export interface JwtPayload {
   exp?: number;
 }
 
-// Configuración del JWT
+/**
+ * JWT configuration
+ * Environment variables for JWT settings with fallback defaults
+ */
 const JWT_SECRET =
   process.env.JWT_SECRET ||
   "tu-clave-secreta-super-segura-cambiar-en-produccion";
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "24h";
 
 /**
- * Generar un token JWT
+ * Generate JWT token
+ * @param payload User data to include in token (without iat/exp)
+ * @returns Signed JWT token string
+ * @throws Error when token generation fails
  */
 export const generateToken = (
   payload: Omit<JwtPayload, "iat" | "exp">
@@ -27,13 +41,16 @@ export const generateToken = (
       audience: "atom-challenge-client",
     });
   } catch (error) {
-    console.error("Error al generar token JWT:", error);
+    console.error("Error generating JWT token:", error);
     throw new Error("No se pudo generar el token de autenticación");
   }
 };
 
 /**
- * Verificar y decodificar un token JWT
+ * Verify and decode JWT token
+ * @param token JWT token string to verify
+ * @returns Decoded JWT payload
+ * @throws Error with specific message for different JWT errors
  */
 export const verifyToken = (token: string): JwtPayload => {
   try {
@@ -44,7 +61,7 @@ export const verifyToken = (token: string): JwtPayload => {
 
     return decoded;
   } catch (error: any) {
-    console.error("Error al verificar token JWT:", error.message);
+    console.error("Error verifying JWT token:", error.message);
 
     if (error.name === "TokenExpiredError") {
       throw new Error("Token expirado");
@@ -59,19 +76,23 @@ export const verifyToken = (token: string): JwtPayload => {
 };
 
 /**
- * Decodificar token sin verificar (para debugging)
+ * Decode token without verification (for debugging)
+ * @param token JWT token string to decode
+ * @returns Decoded JWT payload or null if decoding fails
  */
 export const decodeToken = (token: string): JwtPayload | null => {
   try {
     return jwt.decode(token) as JwtPayload;
   } catch (error) {
-    console.error("Error al decodificar token:", error);
+    console.error("Error decoding token:", error);
     return null;
   }
 };
 
 /**
- * Obtener tiempo de expiración de un token
+ * Get token expiration date
+ * @param token JWT token string
+ * @returns Expiration date or null if token is invalid
  */
 export const getTokenExpiration = (token: string): Date | null => {
   try {
@@ -86,7 +107,9 @@ export const getTokenExpiration = (token: string): Date | null => {
 };
 
 /**
- * Verificar si un token está cerca de expirar (menos de 1 hora)
+ * Check if token is near expiry (less than 1 hour remaining)
+ * @param token JWT token string to check
+ * @returns True if token expires within 1 hour or is invalid
  */
 export const isTokenNearExpiry = (token: string): boolean => {
   try {

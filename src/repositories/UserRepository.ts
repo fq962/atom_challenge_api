@@ -7,6 +7,10 @@ import {
   QuerySnapshot,
 } from "firebase-admin/firestore";
 
+/**
+ * Repository for User entity operations
+ * Handles Firestore database interactions for users
+ */
 export class UserRepository {
   private readonly collection: CollectionReference<DocumentData>;
 
@@ -14,6 +18,12 @@ export class UserRepository {
     this.collection = db.collection("users");
   }
 
+  /**
+   * Find user by email address
+   * @param mail User email to search for
+   * @returns User object if found, null otherwise
+   * @throws Error when database operation fails
+   */
   async getUserByMail(mail: string): Promise<User | null> {
     try {
       const snapshot: QuerySnapshot<DocumentData> = await this.collection
@@ -28,26 +38,32 @@ export class UserRepository {
       const doc = snapshot.docs[0];
       const data = doc.data();
 
-      // Usar factory para crear el usuario desde Firestore
+      // Use factory to create user from Firestore data
       return UserFactory.createFromFirestore(doc.id, data);
     } catch (error) {
-      console.error("Error al obtener usuario por mail:", error);
-      throw new Error("No se pudo obtener el usuario");
+      console.error("Error getting user by email:", error);
+      throw new Error("Could not retrieve user");
     }
   }
 
+  /**
+   * Create new user in database
+   * @param createUserDto User creation data
+   * @returns Created User object with generated ID
+   * @throws Error when user creation fails
+   */
   async createUser(createUserDto: CreateUserDto): Promise<User> {
     try {
-      // Usar factory para crear los datos de Firestore
+      // Use factory to create Firestore data
       const userData = UserFactory.createFirestoreData(createUserDto);
 
       const docRef = await this.collection.add(userData);
 
-      // Usar factory para crear el usuario completo
+      // Use factory to create complete user object
       return UserFactory.createComplete(docRef.id, createUserDto);
     } catch (error) {
-      console.error("Error al crear usuario:", error);
-      throw new Error("No se pudo crear el usuario");
+      console.error("Error creating user:", error);
+      throw new Error("Could not create user");
     }
   }
 }

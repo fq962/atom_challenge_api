@@ -12,10 +12,19 @@ import {
   GetTasksByUserSchema,
 } from "../schemas/taskSchemas";
 
+/**
+ * Task routes configuration
+ * Defines protected endpoints for task CRUD operations
+ * All routes require JWT authentication
+ */
+
 const router = Router();
 const taskController = new TaskController();
 
-// GET /tasks - Obtener todas las tareas o las tareas de un usuario específico (protegido)
+/**
+ * GET /tasks - Get all tasks or user-specific tasks (protected)
+ * Returns filtered tasks based on query parameters
+ */
 router.get(
   "/",
   authMiddleware,
@@ -23,7 +32,10 @@ router.get(
   taskController.getAllTasks
 );
 
-// POST /tasks - Crear una nueva tarea (protegido)
+/**
+ * POST /tasks - Create new task (protected)
+ * Creates task for authenticated user
+ */
 router.post(
   "/",
   authMiddleware,
@@ -31,7 +43,10 @@ router.post(
   taskController.createTask
 );
 
-// PATCH /tasks - Actualizar una tarea específica (protegido) - ID va en body
+/**
+ * PATCH /tasks - Update specific task (protected)
+ * Updates task identified by ID in request body
+ */
 router.patch(
   "/",
   authMiddleware,
@@ -39,7 +54,10 @@ router.patch(
   taskController.updateTask
 );
 
-// DELETE /tasks - Eliminar una tarea específica (protegido)
+/**
+ * DELETE /tasks - Delete specific task (protected)
+ * Deletes task identified by ID in request body
+ */
 router.delete(
   "/",
   authMiddleware,

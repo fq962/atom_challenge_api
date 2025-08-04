@@ -1,7 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import { verifyToken, JwtPayload } from "../utils/jwtUtils";
 
-// Extender el tipo Request para incluir usuario autenticado
+/**
+ * Extend Express Request interface to include authenticated user
+ */
 declare global {
   namespace Express {
     interface Request {
@@ -10,6 +12,15 @@ declare global {
   }
 }
 
+/**
+ * Authentication middleware for protected routes
+ * Validates JWT token and attaches user data to request
+ * @param req Express request object
+ * @param res Express response object
+ * @param next Express next function
+ * @throws 401 - Missing, invalid, or expired token
+ * @throws 500 - Internal server error
+ */
 export const authMiddleware = async (
   req: Request,
   res: Response,
@@ -81,7 +92,13 @@ export const authMiddleware = async (
   }
 };
 
-// Middleware opcional para rutas que pueden funcionar con o sin autenticación
+/**
+ * Optional authentication middleware for public routes
+ * Attaches user data if valid token is provided, continues without user if not
+ * @param req Express request object
+ * @param _res Express response object (unused)
+ * @param next Express next function
+ */
 export const optionalAuthMiddleware = async (
   req: Request,
   _res: Response,

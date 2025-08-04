@@ -1,14 +1,22 @@
 import { Request, Response, NextFunction } from "express";
 import { z, ZodError, ZodSchema } from "zod";
 
-// Tipos para especificar qué partes del request validar
+/**
+ * Schemas configuration for request validation
+ * Defines which parts of the request to validate
+ */
 export interface ValidationSchemas {
   body?: ZodSchema<any>;
   params?: ZodSchema<any>;
   query?: ZodSchema<any>;
 }
 
-// Middleware de validación genérico
+/**
+ * Generic validation middleware factory
+ * Creates middleware to validate request body, params, and query using Zod schemas
+ * @param schemas Validation schemas for different parts of the request
+ * @returns Express middleware function
+ */
 export const validate = (schemas: ValidationSchemas) => {
   return async (
     req: Request,
@@ -59,22 +67,38 @@ export const validate = (schemas: ValidationSchemas) => {
   };
 };
 
-// Middleware específico para validar solo el body
+/**
+ * Body validation middleware factory
+ * @param schema Zod schema for request body validation
+ * @returns Express middleware function
+ */
 export const validateBody = (schema: ZodSchema<any>) => {
   return validate({ body: schema });
 };
 
-// Middleware específico para validar solo los params
+/**
+ * Params validation middleware factory
+ * @param schema Zod schema for request params validation
+ * @returns Express middleware function
+ */
 export const validateParams = (schema: ZodSchema<any>) => {
   return validate({ params: schema });
 };
 
-// Middleware específico para validar solo el query
+/**
+ * Query validation middleware factory
+ * @param schema Zod schema for request query validation
+ * @returns Express middleware function
+ */
 export const validateQuery = (schema: ZodSchema<any>) => {
   return validate({ query: schema });
 };
 
-// Función helper para formatear errores de validación de forma consistente
+/**
+ * Format Zod validation errors consistently
+ * @param error ZodError instance
+ * @returns Formatted error response object
+ */
 export const formatValidationError = (error: ZodError) => {
   const errors = error.issues.map((err) => {
     const field = err.path.join(".") || "campo";
@@ -105,7 +129,14 @@ export const formatValidationError = (error: ZodError) => {
   };
 };
 
-// Middleware para manejar errores de validación de forma global
+/**
+ * Global validation error handler middleware
+ * Catches and formats ZodError instances
+ * @param error Error instance
+ * @param req Express request object
+ * @param res Express response object
+ * @param next Express next function
+ */
 export const validationErrorHandler = (
   error: any,
   req: Request,

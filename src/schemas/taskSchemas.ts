@@ -1,6 +1,13 @@
 import { z } from "zod";
 
-// Schema base para Task
+/**
+ * Task validation schemas
+ * Defines Zod schemas for task-related operations and validation
+ */
+
+/**
+ * Base Task schema with complete task data
+ */
 export const TaskSchema = z.object({
   id: z.string().min(1, "ID es requerido"),
   title: z
@@ -24,7 +31,10 @@ export const TaskSchema = z.object({
   id_user: z.string().min(1, "ID de usuario es requerido"),
 });
 
-// Schema para crear una tarea (sin id_user porque viene del token)
+/**
+ * Schema for task creation
+ * User ID is extracted from JWT token, not from request body
+ */
 export const CreateTaskSchema = z.object({
   title: z
     .string()
@@ -47,7 +57,10 @@ export const CreateTaskSchema = z.object({
     .default(0),
 });
 
-// Schema para actualizar una tarea
+/**
+ * Schema for task updates
+ * All fields except ID are optional for partial updates
+ */
 export const UpdateTaskSchema = z.object({
   id: z.string().min(1, "ID de la tarea es requerido"),
   title: z
@@ -71,17 +84,26 @@ export const UpdateTaskSchema = z.object({
     .optional(),
 });
 
-// Schema para obtener tareas por usuario
+/**
+ * Schema for getting tasks by user
+ * User ID filter is optional for admin operations
+ */
 export const GetTasksByUserSchema = z.object({
   id_user: z.string().min(1, "ID de usuario es requerido").optional(),
 });
 
-// Schema para eliminar tarea
+/**
+ * Schema for task deletion
+ * Requires only task ID for deletion
+ */
 export const DeleteTaskSchema = z.object({
   id: z.string().min(1, "ID de la tarea es requerido"),
 });
 
-// Schema para response de tarea
+/**
+ * Schema for task API responses
+ * Defines structure of task data returned to clients
+ */
 export const TaskResponseSchema = z.object({
   id: z.string(),
   title: z.string(),
@@ -91,8 +113,10 @@ export const TaskResponseSchema = z.object({
   created_at: z.string(), // ISO string format
 });
 
-// Exportar tipos inferidos
-export type CreateTaskInput = z.infer<typeof CreateTaskSchema>; // Solo datos del body (sin id_user)
+/**
+ * TypeScript types inferred from Zod schemas
+ */
+export type CreateTaskInput = z.infer<typeof CreateTaskSchema>; // Body data only (no id_user)
 export type UpdateTaskInput = z.infer<typeof UpdateTaskSchema>;
 export type GetTasksByUserInput = z.infer<typeof GetTasksByUserSchema>;
 export type DeleteTaskInput = z.infer<typeof DeleteTaskSchema>;

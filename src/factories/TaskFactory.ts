@@ -1,9 +1,16 @@
 import { Task, CreateTaskDto, UpdateTaskDto } from "../types/Task";
 import { DocumentReference, DocumentData } from "firebase-admin/firestore";
 
+/**
+ * Factory for Task entity creation, validation and transformation
+ * Handles task data processing and business rules
+ */
 export class TaskFactory {
   /**
-   * Crear una nueva Task desde un DTO de creación
+   * Create Task from CreateTaskDto
+   * @param createTaskDto Task creation data
+   * @returns Task object without ID
+   * @throws Error on validation failure
    */
   static createFromDto(createTaskDto: CreateTaskDto): Omit<Task, "id"> {
     const now = new Date();
@@ -21,7 +28,10 @@ export class TaskFactory {
   }
 
   /**
-   * Crear Task desde datos de Firestore
+   * Create Task from Firestore document data
+   * @param id Document ID
+   * @param data Firestore document data
+   * @returns Complete Task object
    */
   static createFromFirestore(id: string, data: any): Task {
     return {
@@ -37,7 +47,10 @@ export class TaskFactory {
   }
 
   /**
-   * Crear Task completa con ID generado
+   * Create complete Task with generated ID
+   * @param id Generated task ID
+   * @param createTaskDto Task creation data
+   * @returns Complete Task object
    */
   static createComplete(id: string, createTaskDto: CreateTaskDto): Task {
     const taskData = this.createFromDto(createTaskDto);
@@ -48,7 +61,11 @@ export class TaskFactory {
   }
 
   /**
-   * Crear Task con datos actualizados
+   * Create updated Task from existing task and update data
+   * @param existingTask Current task data
+   * @param updateDto Update data
+   * @returns Updated Task object
+   * @throws Error on validation failure
    */
   static createUpdated(existingTask: Task, updateDto: UpdateTaskDto): Task {
     return {
@@ -73,7 +90,10 @@ export class TaskFactory {
   }
 
   /**
-   * Crear una copia de Task marcada como completada
+   * Mark task as completed
+   * @param task Task to mark as completed
+   * @returns Task marked as completed
+   * @throws Error if task is already completed
    */
   static markAsCompleted(task: Task): Task {
     if (task.is_done) {
@@ -87,7 +107,10 @@ export class TaskFactory {
   }
 
   /**
-   * Crear una copia de Task marcada como pendiente
+   * Mark task as pending
+   * @param task Task to mark as pending
+   * @returns Task marked as pending
+   * @throws Error if task is already pending
    */
   static markAsPending(task: Task): Task {
     if (!task.is_done) {
@@ -101,7 +124,10 @@ export class TaskFactory {
   }
 
   /**
-   * Crear datos para actualización en Firestore
+   * Create Firestore update data from UpdateTaskDto
+   * @param updateDto Update data
+   * @returns Firestore-ready update object
+   * @throws Error on validation failure
    */
   static createFirestoreUpdateData(
     updateDto: UpdateTaskDto
@@ -126,8 +152,14 @@ export class TaskFactory {
     return updateData;
   }
 
-  // Métodos privados de validación y normalización
+  // Private validation methods
 
+  /**
+   * Validate and normalize task title
+   * @param title Title to validate
+   * @returns Normalized valid title
+   * @throws Error on validation failure
+   */
   private static validateAndNormalizeTitle(title: string): string {
     if (!title || typeof title !== "string") {
       throw new Error("El título es requerido y debe ser texto");
@@ -144,6 +176,12 @@ export class TaskFactory {
     return normalizedTitle;
   }
 
+  /**
+   * Validate and normalize task description
+   * @param description Description to validate
+   * @returns Normalized valid description
+   * @throws Error on validation failure
+   */
   private static validateAndNormalizeDescription(description: string): string {
     if (description === null || description === undefined) {
       return "";
@@ -161,6 +199,12 @@ export class TaskFactory {
     return normalizedDescription;
   }
 
+  /**
+   * Validate task priority
+   * @param priority Priority value to validate
+   * @returns Valid priority (0-10)
+   * @throws Error on validation failure
+   */
   private static validatePriority(priority: number): number {
     if (priority === null || priority === undefined) {
       return 0; // Prioridad por defecto

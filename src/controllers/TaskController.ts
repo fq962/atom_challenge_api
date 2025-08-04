@@ -9,6 +9,10 @@ import {
   GetTasksByUserInput,
 } from "../schemas/taskSchemas";
 
+/**
+ * Task management controller
+ * Handles CRUD operations for user tasks with auth validation
+ */
 export class TaskController {
   private readonly taskService: TaskService;
 
@@ -16,12 +20,19 @@ export class TaskController {
     this.taskService = new TaskService();
   }
 
+  /**
+   * GET /api/tasks - Retrieve user tasks with statistics
+   * @param req.user - Authenticated user from JWT middleware
+   * @param req.query.id_user - Optional user ID (must match authenticated user)
+   * @returns Task list with count, completed, and pending stats
+   * @throws 401 - Not authenticated, 403 - Unauthorized access
+   */
   getAllTasks = async (req: Request, res: Response): Promise<void> => {
     try {
       if (!req.user) {
         res.status(401).json({
           success: false,
-          message: "Usuario no autenticado",
+          message: "User not authenticated",
           data: null,
         });
         return;
@@ -30,25 +41,24 @@ export class TaskController {
       const { id_user } = req.query as GetTasksByUserInput;
       const authenticatedUserId = req.user.id_user;
 
-      // Si se especifica un userId en la query, verificar que coincida con el usuario autenticado
+      // If userId is specified in query, verify it matches authenticated user
       if (id_user && id_user !== authenticatedUserId) {
         res.status(403).json({
           success: false,
-          message:
-            "No tienes permisos para acceder a las tareas de otro usuario",
+          message: "You don't have permission to access another user's tasks",
           data: null,
           id_user: authenticatedUserId,
         });
         return;
       }
 
-      // Usar el userId de la query si está presente, sino usar el del usuario autenticado
+      // Use userId from query if present, otherwise use authenticated user's ID
       const targetUserId = id_user || authenticatedUserId;
       const taskResponses = await this.taskService.getTasksByUserId(
         targetUserId
       );
 
-      // Convertir TaskResponse[] a Task[] para el factory (necesario para estadísticas)
+      // Convert TaskResponse[] to Task[] for factory (needed for statistics)
       const tasksForStats = taskResponses.map((tr) => ({
         ...tr,
         created_at: new Date(tr.created_at),
@@ -58,47 +68,54 @@ export class TaskController {
       const response = ResponseFactory.createTasksWithMetadata(
         tasksForStats,
         authenticatedUserId,
-        "Tareas obtenidas exitosamente"
+        "Tasks retrieved successfully"
       );
 
       res.status(200).json(response);
     } catch (error) {
-      console.error("Error en getAllTasks:", error);
+      console.error("Error in getAllTasks:", error);
       res.status(500).json({
         success: false,
         message:
-          error instanceof Error ? error.message : "Error interno del servidor",
+          error instanceof Error ? error.message : "Internal server error",
         data: null,
       });
     }
   };
 
+  /**
+   * POST /api/tasks - Create new task
+   * @param req.body - Task data (title, description?, priority?) - Zod validated
+   * @param req.user - User ID extracted from JWT token, not from body
+   * @returns Created task with metadata
+   * @throws 401 - Not authenticated, 400 - Validation error
+   */
   createTask = async (req: Request, res: Response): Promise<void> => {
     try {
       if (!req.user) {
         res.status(401).json({
           success: false,
-          message: "Usuario no autenticado",
+          message: "User not authenticated",
           data: null,
         });
         return;
       }
 
-      // Los datos ya están validados por el middleware de Zod (sin id_user)
+      // Data is already validated by Zod middleware (without id_user)
       const { title, description, priority } = req.body as CreateTaskInput;
       const authenticatedUserId = req.user.id_user;
 
-      // Crear el DTO completo con el id_user del token
+      // Create complete DTO with id_user from token
       const createTaskDto = {
         title,
         description: description || "",
         priority: priority || 0,
-        id_user: authenticatedUserId, // Vienen del token JWT, no del body
+        id_user: authenticatedUserId, // Comes from JWT token, not from body
       };
 
       const taskResponse = await this.taskService.createTask(createTaskDto);
 
-      // Crear Task para el ResponseFactory
+      // Create Task for ResponseFactory
       const task = {
         ...taskResponse,
         created_at: new Date(taskResponse.created_at),
@@ -111,28 +128,34 @@ export class TaskController {
       );
       res.status(201).json(response);
     } catch (error) {
-      console.error("Error en createTask:", error);
+      console.error("Error in createTask:", error);
       res.status(400).json({
         success: false,
-        message:
-          error instanceof Error ? error.message : "Error al crear la tarea",
+        message: error instanceof Error ? error.message : "Error creating task",
         data: null,
       });
     }
   };
 
+  /**
+   * PATCH /api/tasks - Update existing task
+   * @param req.body - Partial task data (id required, title?, description?, is_done?, priority?)
+   * @param req.user - Task ownership validated against authenticated user
+   * @returns Updated task or 404 if not found
+   * @throws 401 - Not authenticated, 404 - Task not found
+   */
   updateTask = async (req: Request, res: Response): Promise<void> => {
     try {
       if (!req.user) {
         res.status(401).json({
           success: false,
-          message: "Usuario no autenticado",
+          message: "User not authenticated",
           data: null,
         });
         return;
       }
 
-      // Los datos ya están validados por el middleware de Zod
+      // Data is already validated by Zod middleware
       const { id, title, description, is_done, priority } =
         req.body as UpdateTaskInput;
       const authenticatedUserId = req.user.id_user;
@@ -152,7 +175,7 @@ export class TaskController {
         return;
       }
 
-      // Crear Task para el ResponseFactory
+      // Create Task for ResponseFactory
       const task = {
         ...taskResponse,
         created_at: new Date(taskResponse.created_at),
@@ -165,30 +188,34 @@ export class TaskController {
       );
       res.status(200).json(response);
     } catch (error) {
-      console.error("Error en updateTask:", error);
+      console.error("Error in updateTask:", error);
       res.status(400).json({
         success: false,
-        message:
-          error instanceof Error
-            ? error.message
-            : "Error al actualizar la tarea",
+        message: error instanceof Error ? error.message : "Error updating task",
         data: null,
       });
     }
   };
 
+  /**
+   * DELETE /api/tasks - Remove task permanently
+   * @param req.body.id - Task ID to delete
+   * @param req.user - Task ownership validated against authenticated user
+   * @returns Success confirmation or 404 if not found
+   * @throws 401 - Not authenticated, 404 - Task not found
+   */
   deleteTask = async (req: Request, res: Response): Promise<void> => {
     try {
       if (!req.user) {
         res.status(401).json({
           success: false,
-          message: "Usuario no autenticado",
+          message: "User not authenticated",
           data: null,
         });
         return;
       }
 
-      // Los datos ya están validados por el middleware de Zod
+      // Data is already validated by Zod middleware
       const { id } = req.body as DeleteTaskInput;
       const authenticatedUserId = req.user.id_user;
 
@@ -204,11 +231,10 @@ export class TaskController {
         ResponseFactory.createTaskDeletedResponse(authenticatedUserId);
       res.status(200).json(response);
     } catch (error) {
-      console.error("Error en deleteTask:", error);
+      console.error("Error in deleteTask:", error);
       res.status(400).json({
         success: false,
-        message:
-          error instanceof Error ? error.message : "Error al eliminar la tarea",
+        message: error instanceof Error ? error.message : "Error deleting task",
         data: null,
       });
     }

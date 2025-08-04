@@ -4,6 +4,10 @@ import { generateToken } from "../utils/jwtUtils";
 import { ResponseFactory } from "../factories/ResponseFactory";
 import { CreateUserInput, GetUserByMailInput } from "../schemas/userSchemas";
 
+/**
+ * User authentication controller
+ * Handles login/register flow with JWT token generation
+ */
 export class UserController {
   private readonly userService: UserService;
 
@@ -11,10 +15,15 @@ export class UserController {
     this.userService = new UserService();
   }
 
-  // GET /users/:mail - Verificar si un usuario existe
+  /**
+   * GET /api/users/:mail - Login by email verification
+   * @param req.params.mail - Email address (Zod validated)
+   * @returns JWT token if user exists, 404 if not found
+   * @throws 400 - Invalid email format, 404 - User not found
+   */
   getUserByMail = async (req: Request, res: Response): Promise<void> => {
     try {
-      // Los datos ya están validados por el middleware de Zod
+      // Data is already validated by Zod middleware
       const { mail } = req.params as GetUserByMailInput;
 
       const user = await this.userService.getUserByMail(mail);
@@ -25,7 +34,7 @@ export class UserController {
         return;
       }
 
-      // Generar token JWT para el usuario
+      // Generate JWT token for the user
       const token = generateToken({
         id_user: user.id,
         mail: user.mail,
@@ -35,29 +44,34 @@ export class UserController {
         user,
         token,
         true,
-        "Usuario encontrado"
+        "User found successfully"
       );
       res.status(200).json(response);
     } catch (error) {
-      console.error("Error en getUserByMail:", error);
+      console.error("Error in getUserByMail:", error);
       res.status(500).json({
         success: false,
         message:
-          error instanceof Error ? error.message : "Error interno del servidor",
+          error instanceof Error ? error.message : "Internal server error",
       });
     }
   };
 
-  // POST /users - Crear un nuevo usuario
+  /**
+   * POST /api/users - Register/Login unified endpoint
+   * @param req.body.mail - Email address (Zod validated)
+   * @returns JWT token for new or existing user with exists flag
+   * @throws 400 - Invalid email or creation error
+   */
   createUser = async (req: Request, res: Response): Promise<void> => {
     try {
-      // Los datos ya están validados por el middleware de Zod
+      // Data is already validated by Zod middleware
       const { mail } = req.body as CreateUserInput;
 
-      // Verificar si el usuario ya existe
+      // Check if user already exists
       const existingUser = await this.userService.getUserByMail(mail);
       if (existingUser) {
-        // Si el usuario ya existe, generar token para él
+        // If user exists, generate token for them
         const token = generateToken({
           id_user: existingUser.id,
           mail: existingUser.mail,
@@ -67,7 +81,7 @@ export class UserController {
           existingUser,
           token,
           true,
-          "Usuario ya existe"
+          "User already exists"
         );
         res.status(200).json(response);
         return;
@@ -76,7 +90,7 @@ export class UserController {
       const createUserDto = { mail };
       const user = await this.userService.createUser(createUserDto);
 
-      // Generar token JWT para el nuevo usuario
+      // Generate JWT token for the new user
       const token = generateToken({
         id_user: user.id,
         mail: user.mail,
@@ -86,15 +100,14 @@ export class UserController {
         user,
         token,
         false,
-        "Usuario creado exitosamente"
+        "User created successfully"
       );
       res.status(201).json(response);
     } catch (error) {
-      console.error("Error en createUser:", error);
+      console.error("Error in createUser:", error);
       res.status(400).json({
         success: false,
-        message:
-          error instanceof Error ? error.message : "Error al crear el usuario",
+        message: error instanceof Error ? error.message : "Error creating user",
       });
     }
   };
