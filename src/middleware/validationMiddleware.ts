@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { z, ZodError, ZodSchema } from "zod";
+import { ZodError, ZodSchema } from "zod";
 
 /**
  * Schemas configuration for request validation
@@ -48,9 +48,16 @@ export const validate = (schemas: ValidationSchemas) => {
           code: err.code,
         }));
 
+        // Si hay un solo error, usar su mensaje específico
+        // Si hay múltiples errores, usar un mensaje genérico
+        const mainMessage =
+          errorMessages.length === 1
+            ? errorMessages[0].message
+            : "Error de validación";
+
         res.status(400).json({
           success: false,
-          message: "Error de validación",
+          message: mainMessage,
           errors: errorMessages,
           details: "Los datos proporcionados no cumplen con los requisitos",
         });
@@ -58,7 +65,6 @@ export const validate = (schemas: ValidationSchemas) => {
       }
 
       // Error inesperado
-      console.error("Error inesperado en validación:", error);
       res.status(500).json({
         success: false,
         message: "Error interno del servidor durante la validación",
@@ -139,7 +145,7 @@ export const formatValidationError = (error: ZodError) => {
  */
 export const validationErrorHandler = (
   error: any,
-  req: Request,
+  _req: Request,
   res: Response,
   next: NextFunction
 ): void => {

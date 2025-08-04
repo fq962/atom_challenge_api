@@ -41,7 +41,6 @@ export const generateToken = (
       audience: "atom-challenge-client",
     });
   } catch (error) {
-    console.error("Error generating JWT token:", error);
     throw new Error("No se pudo generar el token de autenticación");
   }
 };
@@ -61,8 +60,6 @@ export const verifyToken = (token: string): JwtPayload => {
 
     return decoded;
   } catch (error: any) {
-    console.error("Error verifying JWT token:", error.message);
-
     if (error.name === "TokenExpiredError") {
       throw new Error("Token expirado");
     } else if (error.name === "JsonWebTokenError") {
@@ -84,7 +81,6 @@ export const decodeToken = (token: string): JwtPayload | null => {
   try {
     return jwt.decode(token) as JwtPayload;
   } catch (error) {
-    console.error("Error decoding token:", error);
     return null;
   }
 };

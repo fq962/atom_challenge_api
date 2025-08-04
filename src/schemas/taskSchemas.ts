@@ -43,7 +43,6 @@ export const CreateTaskSchema = z.object({
     .trim(),
   description: z
     .string()
-    .min(1, "La descripción es requerida")
     .max(500, "La descripción no puede exceder 500 caracteres")
     .trim()
     .optional()
@@ -71,7 +70,6 @@ export const UpdateTaskSchema = z.object({
     .optional(),
   description: z
     .string()
-    .min(1, "La descripción no puede estar vacía")
     .max(500, "La descripción no puede exceder 500 caracteres")
     .trim()
     .optional(),

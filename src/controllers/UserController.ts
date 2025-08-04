@@ -48,7 +48,6 @@ export class UserController {
       );
       res.status(200).json(response);
     } catch (error) {
-      console.error("Error in getUserByMail:", error);
       res.status(500).json({
         success: false,
         message:
@@ -104,7 +103,6 @@ export class UserController {
       );
       res.status(201).json(response);
     } catch (error) {
-      console.error("Error in createUser:", error);
       res.status(400).json({
         success: false,
         message: error instanceof Error ? error.message : "Error creating user",

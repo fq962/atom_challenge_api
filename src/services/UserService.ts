@@ -24,7 +24,6 @@ export class UserService {
       // Email is already normalized from schema
       return await this.userRepository.getUserByMail(mail);
     } catch (error) {
-      console.error("Error in UserService.getUserByMail:", error);
       throw error;
     }
   }
@@ -33,24 +32,16 @@ export class UserService {
    * Create new user with business logic validation
    * @param createUserDto User creation data (already validated by Zod middleware)
    * @returns Created User object
-   * @throws Error when user already exists or creation fails
+   * @throws Error when creation fails
    */
   async createUser(createUserDto: CreateUserDto): Promise<User> {
     try {
       // Format validation is handled by Zod middleware
       // Email is already normalized from schema
-
-      // Check user doesn't exist (business logic validation)
-      const existingUser = await this.userRepository.getUserByMail(
-        createUserDto.mail
-      );
-      if (existingUser) {
-        throw new Error("El usuario ya existe");
-      }
+      // Note: User existence check is handled at controller level
 
       return await this.userRepository.createUser(createUserDto);
     } catch (error) {
-      console.error("Error in UserService.createUser:", error);
       throw error;
     }
   }

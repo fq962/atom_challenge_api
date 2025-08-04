@@ -58,14 +58,14 @@ process.on("SIGINT", () => {
  * Handle unhandled promise rejections
  */
 process.on("unhandledRejection", (reason, promise) => {
-  console.error("Unhandled promise rejection:", promise, "Reason:", reason);
+  console.debug("Unhandled promise rejection:", promise, "Reason:", reason);
 });
 
 /**
  * Handle uncaught exceptions
  */
 process.on("uncaughtException", (error) => {
-  console.error("Uncaught exception:", error);
+  console.debug("Uncaught exception:", error);
   process.exit(1);
 });
 

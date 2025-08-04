@@ -32,10 +32,7 @@ export class TaskRepository {
         snapshot = await this.collection.orderBy("created_at", "desc").get();
       } catch (orderError) {
         // If ordering fails, get without order
-        console.log(
-          "Could not order by created_at, getting without order:",
-          orderError
-        );
+
         snapshot = await this.collection.get();
       }
 
@@ -51,7 +48,6 @@ export class TaskRepository {
 
       return tasks;
     } catch (error) {
-      console.error("Error getting tasks:", error);
       throw new Error("Could not retrieve tasks");
     }
   }
@@ -64,17 +60,12 @@ export class TaskRepository {
    */
   async getTasksByUserId(userId: string): Promise<Task[]> {
     try {
-      console.log("userId", userId);
-
       // Create user document reference
       const userRef = db.collection("users").doc(userId);
-      console.log("Searching tasks for userRef:", userRef.path);
-      console.log("userRef", userRef);
       const snapshot: QuerySnapshot<DocumentData> = await this.collection
         .where("id_user", "==", userRef)
         .get();
 
-      console.log("Documents found:", snapshot.size);
       const tasks: Task[] = [];
       snapshot.forEach((doc) => {
         const data = doc.data();
@@ -86,7 +77,6 @@ export class TaskRepository {
       tasks.sort((a, b) => b.created_at.getTime() - a.created_at.getTime());
       return tasks;
     } catch (error) {
-      console.error("Error getting user tasks:", error);
       throw new Error("Could not retrieve user tasks");
     }
   }
@@ -114,7 +104,6 @@ export class TaskRepository {
       // Use factory to create complete task object
       return TaskFactory.createComplete(docRef.id, createTaskDto);
     } catch (error) {
-      console.error("Error creating task:", error);
       throw new Error("Could not create task");
     }
   }
@@ -149,7 +138,6 @@ export class TaskRepository {
       // Use factory to create task from Firestore data
       return TaskFactory.createFromFirestore(updatedDoc.id, data);
     } catch (error) {
-      console.error("Error updating task:", error);
       throw new Error("Could not update task");
     }
   }
@@ -172,7 +160,6 @@ export class TaskRepository {
       await docRef.delete();
       return true;
     } catch (error) {
-      console.error("Error deleting task:", error);
       throw new Error("Could not delete task");
     }
   }

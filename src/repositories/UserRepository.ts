@@ -41,7 +41,6 @@ export class UserRepository {
       // Use factory to create user from Firestore data
       return UserFactory.createFromFirestore(doc.id, data);
     } catch (error) {
-      console.error("Error getting user by email:", error);
       throw new Error("Could not retrieve user");
     }
   }
@@ -62,7 +61,6 @@ export class UserRepository {
       // Use factory to create complete user object
       return UserFactory.createComplete(docRef.id, createUserDto);
     } catch (error) {
-      console.error("Error creating user:", error);
       throw new Error("Could not create user");
     }
   }

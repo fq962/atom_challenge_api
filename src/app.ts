@@ -15,9 +15,6 @@ import userRoutes from "./routes/userRoutes";
 // Import validation middleware
 import { validationErrorHandler } from "./middleware/validationMiddleware";
 
-// Import factories
-import { ResponseFactory } from "./factories/ResponseFactory";
-
 /**
  * Load environment variables from .env file
  */
@@ -43,12 +40,24 @@ app.use(
     origin:
       process.env.NODE_ENV === "production"
         ? ["https://atom-challenge-five.vercel.app"] // Production frontend domain
-        : ["http://localhost:4200", "http://localhost:3000"], // Development
+        : true, // En desarrollo, permitir cualquier origen
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "Accept",
+      "Origin",
+    ],
   })
 );
+
+/**
+ * Handle preflight OPTIONS requests for CORS
+ * This ensures OPTIONS requests are handled before authentication
+ */
+app.options("*", cors());
 
 /**
  * Body parsing middleware
@@ -59,9 +68,9 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 /**
  * Development logging middleware
- * Log HTTP requests in non-production environments
+ * Log HTTP requests only in development environments
  */
-if (process.env.NODE_ENV !== "production") {
+if (process.env.NODE_ENV === "development") {
   app.use((req, _res, next) => {
     console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
     next();
@@ -102,8 +111,6 @@ app.use(
     res: express.Response,
     _next: express.NextFunction
   ) => {
-    console.error("Unhandled error:", error);
-
     res.status(500).json({
       success: false,
       message:

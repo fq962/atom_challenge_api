@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { TaskService } from "../services/TaskService";
 import { ResponseFactory } from "../factories/ResponseFactory";
-import { CreateTaskBodyDto } from "../types/Task";
 import {
   CreateTaskInput,
   UpdateTaskInput,
@@ -58,7 +57,7 @@ export class TaskController {
         targetUserId
       );
 
-      // Convert TaskResponse[] to Task[] for factory (needed for statistics)
+      // Convert TaskResponse[] back to Task[] for metadata calculation
       const tasksForStats = taskResponses.map((tr) => ({
         ...tr,
         created_at: new Date(tr.created_at),
@@ -73,7 +72,6 @@ export class TaskController {
 
       res.status(200).json(response);
     } catch (error) {
-      console.error("Error in getAllTasks:", error);
       res.status(500).json({
         success: false,
         message:
@@ -128,7 +126,6 @@ export class TaskController {
       );
       res.status(201).json(response);
     } catch (error) {
-      console.error("Error in createTask:", error);
       res.status(400).json({
         success: false,
         message: error instanceof Error ? error.message : "Error creating task",
@@ -188,7 +185,6 @@ export class TaskController {
       );
       res.status(200).json(response);
     } catch (error) {
-      console.error("Error in updateTask:", error);
       res.status(400).json({
         success: false,
         message: error instanceof Error ? error.message : "Error updating task",
@@ -231,7 +227,6 @@ export class TaskController {
         ResponseFactory.createTaskDeletedResponse(authenticatedUserId);
       res.status(200).json(response);
     } catch (error) {
-      console.error("Error in deleteTask:", error);
       res.status(400).json({
         success: false,
         message: error instanceof Error ? error.message : "Error deleting task",

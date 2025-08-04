@@ -58,8 +58,6 @@ export const authMiddleware = async (
 
       next();
     } catch (error: any) {
-      console.error("Error al verificar token:", error.message);
-
       // Manejar diferentes tipos de errores de token
       let message = "Token inválido";
       let code = "INVALID_TOKEN";
@@ -83,7 +81,6 @@ export const authMiddleware = async (
       return;
     }
   } catch (error) {
-    console.error("Error en middleware de autenticación:", error);
     res.status(500).json({
       success: false,
       message: "Error interno del servidor",

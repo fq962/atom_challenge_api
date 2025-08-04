@@ -1,11 +1,6 @@
 import { TaskRepository } from "../repositories/TaskRepository";
 import { ResponseFactory } from "../factories/ResponseFactory";
-import {
-  Task,
-  CreateTaskDto,
-  UpdateTaskDto,
-  TaskResponse,
-} from "../types/Task";
+import { CreateTaskDto, UpdateTaskDto, TaskResponse } from "../types/Task";
 
 /**
  * Task business logic service

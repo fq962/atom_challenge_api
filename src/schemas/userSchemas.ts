@@ -12,11 +12,11 @@ export const UserSchema = z.object({
   id: z.string().min(1, "ID es requerido"),
   mail: z
     .string()
-    .email("Formato de email inválido")
+    .trim()
     .min(1, "Email es requerido")
-    .max(254, "Email demasiado largo") // RFC 5321 limit
     .toLowerCase()
-    .trim(),
+    .email("Formato de email inválido")
+    .max(254, "Email demasiado largo"), // RFC 5321 limit
 });
 
 /**
@@ -26,11 +26,11 @@ export const UserSchema = z.object({
 export const CreateUserSchema = z.object({
   mail: z
     .string()
-    .email("Formato de email inválido")
+    .trim()
     .min(1, "Email es requerido")
-    .max(254, "Email demasiado largo")
     .toLowerCase()
-    .trim(),
+    .email("Formato de email inválido")
+    .max(254, "Email demasiado largo"),
 });
 
 /**
@@ -40,11 +40,11 @@ export const CreateUserSchema = z.object({
 export const GetUserByMailSchema = z.object({
   mail: z
     .string()
-    .email("Formato de email inválido")
+    .trim()
     .min(1, "Email es requerido")
-    .max(254, "Email demasiado largo")
     .toLowerCase()
-    .trim(),
+    .email("Formato de email inválido")
+    .max(254, "Email demasiado largo"),
 });
 
 /**
