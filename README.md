@@ -63,7 +63,7 @@ Una vez iniciado el servidor, deberías ver un mensaje similar a:
 ```
 🚀 Server running on port 3000
 📍 Local URL: http://localhost:3000
-🏥 Health check: http://localhost:3000/api/health
+📋 Tasks endpoint: http://localhost:3000/api/tasks
 ```
 
 ## 🛠️ Scripts Disponibles

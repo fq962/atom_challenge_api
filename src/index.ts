@@ -18,7 +18,6 @@ const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📍 Local URL: http://localhost:${PORT}`);
-  console.log(`🏥 Health check: http://localhost:${PORT}/api/health`);
   console.log(`📋 Tasks endpoint: http://localhost:${PORT}/api/tasks`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
 });

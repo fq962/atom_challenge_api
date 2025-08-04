@@ -75,15 +75,6 @@ app.use("/api/tasks", taskRoutes);
 app.use("/api/users", userRoutes);
 
 /**
- * Health check endpoint
- * GET /api/health - Returns API status and system information
- */
-app.get("/api/health", (_req, res) => {
-  const response = ResponseFactory.createHealthResponse();
-  res.status(200).json(response);
-});
-
-/**
  * 404 handler for undefined routes
  * Catches all unmatched routes and returns standardized error
  */

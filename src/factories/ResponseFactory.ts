@@ -184,18 +184,6 @@ export class ResponseFactory {
   }
 
   /**
-   * Create health check response
-   * @returns Health status with system information
-   */
-  static createHealthResponse() {
-    return this.createSuccessResponse("API funcionando correctamente", null, {
-      version: "1.0.0",
-      environment: process.env.NODE_ENV || "development",
-      uptime: process.uptime(),
-    });
-  }
-
-  /**
    * Create unauthorized access response
    * @param message Custom error message
    * @returns Standardized 403 error response
