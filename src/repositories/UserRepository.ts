@@ -1,5 +1,6 @@
 import { db } from "../config/firebase";
 import { User, CreateUserDto } from "../types/User";
+import { UserFactory } from "../factories/UserFactory";
 import {
   CollectionReference,
   DocumentData,
@@ -27,10 +28,8 @@ export class UserRepository {
       const doc = snapshot.docs[0];
       const data = doc.data();
 
-      return {
-        id: doc.id,
-        mail: data.mail || "",
-      };
+      // Usar factory para crear el usuario desde Firestore
+      return UserFactory.createFromFirestore(doc.id, data);
     } catch (error) {
       console.error("Error al obtener usuario por mail:", error);
       throw new Error("No se pudo obtener el usuario");
@@ -39,18 +38,13 @@ export class UserRepository {
 
   async createUser(createUserDto: CreateUserDto): Promise<User> {
     try {
-      const now = new Date();
-      const userData = {
-        mail: createUserDto.mail,
-        created_at: now,
-      };
+      // Usar factory para crear los datos de Firestore
+      const userData = UserFactory.createFirestoreData(createUserDto);
 
       const docRef = await this.collection.add(userData);
 
-      return {
-        id: docRef.id,
-        mail: userData.mail,
-      };
+      // Usar factory para crear el usuario completo
+      return UserFactory.createComplete(docRef.id, createUserDto);
     } catch (error) {
       console.error("Error al crear usuario:", error);
       throw new Error("No se pudo crear el usuario");

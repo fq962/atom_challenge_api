@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { UserService } from "../services/UserService";
 import { generateToken } from "../utils/jwtUtils";
+import { ResponseFactory } from "../factories/ResponseFactory";
 import { CreateUserInput, GetUserByMailInput } from "../schemas/userSchemas";
 
 export class UserController {
@@ -19,11 +20,8 @@ export class UserController {
       const user = await this.userService.getUserByMail(mail);
 
       if (!user) {
-        res.status(404).json({
-          success: false,
-          message: "Usuario no encontrado",
-          exists: false,
-        });
+        const response = ResponseFactory.createUserNotFoundResponse();
+        res.status(404).json(response);
         return;
       }
 
@@ -33,12 +31,13 @@ export class UserController {
         mail: user.mail,
       });
 
-      res.status(200).json({
-        success: true,
-        message: "Usuario encontrado",
+      const response = ResponseFactory.createAuthResponse(
+        user,
         token,
-        exists: true,
-      });
+        true,
+        "Usuario encontrado"
+      );
+      res.status(200).json(response);
     } catch (error) {
       console.error("Error en getUserByMail:", error);
       res.status(500).json({
@@ -64,12 +63,13 @@ export class UserController {
           mail: existingUser.mail,
         });
 
-        res.status(200).json({
-          success: true,
-          message: "Usuario ya existe",
+        const response = ResponseFactory.createAuthResponse(
+          existingUser,
           token,
-          exists: true,
-        });
+          true,
+          "Usuario ya existe"
+        );
+        res.status(200).json(response);
         return;
       }
 
@@ -82,11 +82,13 @@ export class UserController {
         mail: user.mail,
       });
 
-      res.status(201).json({
-        success: true,
-        message: "Usuario creado exitosamente",
+      const response = ResponseFactory.createAuthResponse(
+        user,
         token,
-      });
+        false,
+        "Usuario creado exitosamente"
+      );
+      res.status(201).json(response);
     } catch (error) {
       console.error("Error en createUser:", error);
       res.status(400).json({

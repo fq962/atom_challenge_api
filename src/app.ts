@@ -10,6 +10,9 @@ import userRoutes from "./routes/userRoutes";
 // Importar middleware de validación
 import { validationErrorHandler } from "./middleware/validationMiddleware";
 
+// Importar factories
+import { ResponseFactory } from "./factories/ResponseFactory";
+
 // Cargar variables de entorno
 dotenv.config();
 
@@ -50,12 +53,8 @@ app.use("/api/users", userRoutes);
 
 // Ruta de health check
 app.get("/api/health", (_req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "API funcionando correctamente",
-    timestamp: new Date().toISOString(),
-    version: "1.0.0",
-  });
+  const response = ResponseFactory.createHealthResponse();
+  res.status(200).json(response);
 });
 
 // Middleware para rutas no encontradas

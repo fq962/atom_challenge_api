@@ -1,5 +1,6 @@
 import { db } from "../config/firebase";
 import { Task, CreateTaskDto, UpdateTaskDto } from "../types/Task";
+import { TaskFactory } from "../factories/TaskFactory";
 import {
   CollectionReference,
   DocumentData,
@@ -32,16 +33,8 @@ export class TaskRepository {
       const tasks: Task[] = [];
       snapshot.forEach((doc) => {
         const data = doc.data();
-        tasks.push({
-          id: doc.id,
-          title: data.title || "",
-          description: data.description || "",
-          is_done: data.id_done || false,
-          priority: data.priority || 0,
-          created_at: data.created_at?.toDate() || new Date(),
-          id_user:
-            data.id_user?.id || data.userId || data.user_id || "anonymous",
-        });
+        const task = TaskFactory.createFromFirestore(doc.id, data);
+        tasks.push(task);
       });
 
       // Ordenar manualmente por fecha si no se pudo hacer en la consulta
@@ -70,17 +63,8 @@ export class TaskRepository {
       const tasks: Task[] = [];
       snapshot.forEach((doc) => {
         const data = doc.data();
-        tasks.push({
-          id: doc.id,
-          title: data.title || "",
-          description: data.description || "",
-          is_done: data.is_done || false,
-          priority: data.priority || 0,
-          created_at:
-            data.created_at?.toDate() || data.createdAt?.toDate() || new Date(),
-          id_user:
-            data.id_user?.id || data.userId || data.user_id || "anonymous",
-        });
+        const task = TaskFactory.createFromFirestore(doc.id, data);
+        tasks.push(task);
       });
 
       // Ordenar manualmente por fecha de creación (más recientes primero)
@@ -97,23 +81,17 @@ export class TaskRepository {
       const userRef = db
         .collection("users")
         .doc(createTaskDto.id_user.toString());
-      console.log("userRef", userRef);
-      const now = new Date();
-      const taskData = {
-        title: createTaskDto.title,
-        description: createTaskDto.description,
-        is_done: false,
-        priority: createTaskDto.priority,
-        created_at: now,
-        id_user: userRef, // Mantener ambos por compatibilidad
-      };
+
+      // Usar factory para crear los datos de la tarea
+      const taskData = TaskFactory.createFromDto({
+        ...createTaskDto,
+        id_user: userRef, // Usar referencia para Firestore
+      });
 
       const docRef = await this.collection.add(taskData);
 
-      return {
-        id: docRef.id,
-        ...taskData,
-      };
+      // Usar factory para crear la tarea completa
+      return TaskFactory.createComplete(docRef.id, createTaskDto);
     } catch (error) {
       console.error("Error al crear la tarea:", error);
       throw new Error("No se pudo crear la tarea");
@@ -132,25 +110,16 @@ export class TaskRepository {
         return null;
       }
 
-      const updateData = {
-        ...updateTaskDto,
-      };
+      // Usar factory para crear los datos de actualización
+      const updateData = TaskFactory.createFirestoreUpdateData(updateTaskDto);
 
       await docRef.update(updateData);
 
       const updatedDoc = await docRef.get();
       const data = updatedDoc.data()!;
 
-      return {
-        id: updatedDoc.id,
-        title: data.title || "",
-        description: data.description || "",
-        is_done: data.is_done || data.is_done || false,
-        priority: data.priority || 0,
-        created_at:
-          data.created_at?.toDate() || data.createdAt?.toDate() || new Date(),
-        id_user: data.id_user,
-      };
+      // Usar factory para crear la tarea desde Firestore
+      return TaskFactory.createFromFirestore(updatedDoc.id, data);
     } catch (error) {
       console.error("Error al actualizar la tarea:", error);
       throw new Error("No se pudo actualizar la tarea");

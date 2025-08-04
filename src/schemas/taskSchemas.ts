@@ -24,7 +24,7 @@ export const TaskSchema = z.object({
   id_user: z.string().min(1, "ID de usuario es requerido"),
 });
 
-// Schema para crear una tarea
+// Schema para crear una tarea (sin id_user porque viene del token)
 export const CreateTaskSchema = z.object({
   title: z
     .string()
@@ -45,7 +45,6 @@ export const CreateTaskSchema = z.object({
     .max(10, "La prioridad máxima es 10")
     .optional()
     .default(0),
-  id_user: z.string().min(1, "ID de usuario es requerido"),
 });
 
 // Schema para actualizar una tarea
@@ -93,7 +92,7 @@ export const TaskResponseSchema = z.object({
 });
 
 // Exportar tipos inferidos
-export type CreateTaskInput = z.infer<typeof CreateTaskSchema>;
+export type CreateTaskInput = z.infer<typeof CreateTaskSchema>; // Solo datos del body (sin id_user)
 export type UpdateTaskInput = z.infer<typeof UpdateTaskSchema>;
 export type GetTasksByUserInput = z.infer<typeof GetTasksByUserSchema>;
 export type DeleteTaskInput = z.infer<typeof DeleteTaskSchema>;

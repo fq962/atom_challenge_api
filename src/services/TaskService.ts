@@ -1,4 +1,5 @@
 import { TaskRepository } from "../repositories/TaskRepository";
+import { ResponseFactory } from "../factories/ResponseFactory";
 import {
   Task,
   CreateTaskDto,
@@ -16,14 +17,14 @@ export class TaskService {
   async getTasksByUserId(userId: string): Promise<TaskResponse[]> {
     // Las validaciones básicas ahora se hacen en el middleware de Zod
     const tasks = await this.taskRepository.getTasksByUserId(userId);
-    return this.mapTasksToResponse(tasks);
+    return ResponseFactory.createTasksResponse(tasks);
   }
 
   async createTask(createTaskDto: CreateTaskDto): Promise<TaskResponse> {
     // Las validaciones de formato ahora se hacen en el middleware de Zod
     // Solo validamos lógica de negocio si es necesario
     const task = await this.taskRepository.createTask(createTaskDto);
-    return this.mapTaskToResponse(task);
+    return ResponseFactory.createTaskResponse(task);
   }
 
   async updateTask(
@@ -32,7 +33,7 @@ export class TaskService {
   ): Promise<TaskResponse | null> {
     // Las validaciones de formato ahora se hacen en el middleware de Zod
     const task = await this.taskRepository.updateTask(id, updateTaskDto);
-    return task ? this.mapTaskToResponse(task) : null;
+    return task ? ResponseFactory.createTaskResponse(task) : null;
   }
 
   async deleteTask(id: string): Promise<boolean> {
@@ -40,18 +41,5 @@ export class TaskService {
     return await this.taskRepository.deleteTask(id);
   }
 
-  private mapTaskToResponse(task: Task): TaskResponse {
-    return {
-      id: task.id,
-      title: task.title,
-      description: task.description,
-      is_done: task.is_done,
-      priority: task.priority,
-      created_at: task.created_at.toISOString(),
-    };
-  }
-
-  private mapTasksToResponse(tasks: Task[]): TaskResponse[] {
-    return tasks.map((task) => this.mapTaskToResponse(task));
-  }
+  // Los métodos de mapeo ahora se manejan en ResponseFactory
 }

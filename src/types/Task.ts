@@ -10,6 +10,14 @@ export interface Task {
   created_at: Date;
 }
 
+// DTO para datos del body (sin id_user)
+export interface CreateTaskBodyDto {
+  title: string;
+  description: string;
+  priority: number;
+}
+
+// DTO para crear tarea internamente (con id_user del token)
 export interface CreateTaskDto {
   title: string;
   description: string;
